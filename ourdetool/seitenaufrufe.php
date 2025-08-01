@@ -1,4 +1,5 @@
 <?php
+include_once "../inc/sv.inc.php";
 include "../inccon.php";
 ?>
 <html>
@@ -24,8 +25,10 @@ IP Adressen des gleichen Oktetts:
 <a href="multi.php?okt=3">[ 3 ]</a> -
 <a href="multi.php?okt=4">[ 4 ]</a> <br><br><br>
 <?php
-if(!isset($okt))
+if(!isset($_GET['okt']))
 $okt=4;
+else
+$okt = intval($_GET['okt']);
 
 include "det_userdata.inc.php";
 
@@ -41,10 +44,7 @@ $last_login=date("Y-m-d H:i:s",$tis);
 $time_start = getmicrotime();
 
 $targetdata = array('localhost', 'dbuser', 'c0j9XIrL5Rwm', 'gameserverlogdata', 'gameserverlogdata');
-$dblog = mysql_connect($targetdata[0], $targetdata[1], $targetdata[2]) or die("Keine Verbindung zur Datenbank möglich.");
-echo mysql_error();
-mysql_select_db($targetdata[3], $dblog);
-echo mysql_error();
+$dblog = mysqli_connect($GLOBALS['env_db_logging_host'], $GLOBALS['env_db_logging_user'], $GLOBALS['env_db_logging_password'], $GLOBALS['env_db_logging_database']) or die("C: Keine Verbindung zur Datenbank möglich.");
 
 //CDE 13, DDE 4, EDE 3, RDE 11, SDE 2, xDE 1 
 
@@ -55,16 +55,12 @@ $server[0][1]='xDE';
 $server[1][0]=2;
 $server[1][1]='SDE';
 
-$server[2][0]=11;
-$server[2][1]='RDE';
 
 for($s=0;$s<count($server);$s++){
 
   $serverid=$server[$s][0];
 
   echo '<br><br>SERVER: '.$server[$s][1];
-
-  $sql="SELECT userid, COUNT(*) AS anzahl FROM `gameserverlogdata` WHERE serverid=$serverid GROUP BY serverid, userid ORDER BY anzahl DESC";
   //echo '<br>'.$sql;
 
   echo '
@@ -72,8 +68,9 @@ for($s=0;$s<count($server);$s++){
     <tr><td>User-ID</td><td>Seitenaufrufe</td><tr>
   ';
 
-  $db_daten=mysql_query($sql,$dblog);
-  while($row = mysql_fetch_array($db_daten)){
+  $sql = "SELECT userid, COUNT(*) AS anzahl FROM `gameserverlogdata` WHERE serverid=? GROUP BY serverid, userid ORDER BY anzahl DESC";
+  $db_daten = mysqli_execute_query($dblog, $sql, [$serverid]);
+  while($row = mysqli_fetch_array($db_daten)){
     if($row['anzahl']>1000){
       echo '
       <tr>

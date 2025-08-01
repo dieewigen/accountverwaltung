@@ -63,7 +63,11 @@ if ((!isset($_SESSION['ums_user_id']) || $_SESSION['ums_user_id'] < 1) && isset(
             $parts = explode(".", $ip);
             $ip = $parts[0].'.x.'.$parts[2].'.'.$parts[3];
 
-            mysqli_query($GLOBALS['dbi'], "UPDATE ls_user SET last_login=NOW(), last_ip='$ip' WHERE user_id='".intval($_SESSION['ums_user_id'])."'");
+            mysqli_execute_query(
+                $GLOBALS['dbi'],
+                "UPDATE ls_user SET last_login=NOW(), last_ip=? WHERE user_id=?",
+                [$ip, $_SESSION['ums_user_id']]
+            );
 
         }
     }
@@ -142,7 +146,11 @@ echo '<div id="content">';
 //man ist eingeloggt:
 if (isset($_SESSION["ums_user_id"]) && $_SESSION["ums_user_id"] > 0) {
     //last_login updaten
-    mysqli_query($GLOBALS['dbi'], "UPDATE ls_user SET last_login=NOW() WHERE user_id='".intval($_SESSION['ums_user_id'])."';");
+    mysqli_execute_query(
+        $GLOBALS['dbi'],
+        "UPDATE ls_user SET last_login=NOW() WHERE user_id=?",
+        [$_SESSION['ums_user_id']]
+    );
 
     if ($_REQUEST["command"] == "logout") {
         session_destroy();

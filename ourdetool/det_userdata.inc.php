@@ -28,8 +28,8 @@ $userfile = fopen ($filename, 'r');
 $file_userlevel=trim(fgets($userfile, 1024));
 fclose($userfile);
 
-//schauen ob der userlevel für das script ausreicht
-if ($det_userlevel>$file_userlevel) die ('<font color="#FF0000"><b><br>Du hast nicht den nötigen Userlevel für diese Seite.');
+//schauen ob der userlevel fï¿½r das script ausreicht
+if ($det_userlevel>$file_userlevel) die ('<font color="#FF0000"><b><br>Du hast nicht den nï¿½tigen Userlevel fï¿½r diese Seite.');
 
 //speichern der aktion
 //if ($ums_user_id>0) //post und get-variablen mitloggen
@@ -43,6 +43,9 @@ if ($det_userlevel>$file_userlevel) die ('<font color="#FF0000"><b><br>Du hast n
    // "Server:" => $HTTP_SERVER_VARS,
    // "Environment:" => $HTTP_ENV_VARS
   );
+  
+  // Initialisieren der Variable datenstring
+  $datenstring = "";
 
   function printElementHtml( $value, $key ) {
     global $datenstring;
@@ -63,7 +66,7 @@ if ($det_userlevel>$file_userlevel) die ('<font color="#FF0000"><b><br>Du hast n
 
   $datum=date("Y-m-d H:i:s",time());
   $ip=getenv("REMOTE_ADDR");
-  $datenstring="Zeit: $datum\nIP: $ip\nDatei: $PHP_SELF\n".$datenstring."\n--------------------------------------\n";
+  $datenstring="Zeit: $datum\nIP: $ip\nDatei: ".$_SERVER["PHP_SELF"]."\n".$datenstring."\n--------------------------------------\n";
   $fp234=fopen("logs/".$det_username.".txt", "a");
   fputs($fp234, $datenstring);
   fclose($fp234);

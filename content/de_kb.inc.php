@@ -4,7 +4,7 @@
 //Serverauswahl
 ////////////////////////////////////////////////////////////////////////
 //erlaubte Server
-$allowed_server=array('xDE', 'SDE', 'RDE', 'CDE', 'EDE', 'DDE');
+$allowed_server=array('xDE', 'SDE');
 
 $show_server=isset($_REQUEST['show_server']) ? $_REQUEST['show_server'] : '';
 

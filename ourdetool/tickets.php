@@ -1,4 +1,5 @@
 <?php
+include_once "../inc/sv.inc.php";
 include "../inccon.php";
 //include "../outputlib.php";
 
@@ -17,10 +18,11 @@ include "det_userdata.inc.php";
 
 if(isset($_REQUEST['showtid'])){
 	$ticket_id=intval($_REQUEST['showtid']);
-	$db_daten=mysql_query("SELECT * FROM ls_tickets WHERE id='$ticket_id'",$db);
-	$num = mysql_num_rows($db_daten);
+	$sql = "SELECT * FROM ls_tickets WHERE id=?";
+	$db_daten = mysqli_execute_query($GLOBALS['dbi'], $sql, [$ticket_id]);
+	$num = mysqli_num_rows($db_daten);
 	if($num>0){
-		$row = mysql_fetch_array($db_daten);
+		$row = mysqli_fetch_array($db_daten);
 		$user_id=$row['user_id'];
 		//�berpr�fen ob das ticket dem spieler geh�rt
 			//�berpr�fen ob eine antwort eingef�gt werden soll
@@ -32,20 +34,23 @@ if(isset($_REQUEST['showtid'])){
 				//echo 'B: '.$messagesql;
 				$messagesql=str_replace('\r\n', '<br>', $messagesql);
 
-				$messagesql=utf8_decode($messagesql);
+				$messagesql=$messagesql;
 				//echo 'C: '.$messagesql;
 				
 				//nachricht hinterlegen
-				mysql_query("INSERT INTO ls_tickets_posts SET ticket_id='$ticket_id', created='$time', poster='$det_email', message='$messagesql';", $db);
+				$sql = "INSERT INTO ls_tickets_posts SET ticket_id=?, created=?, poster=?, message=?";
+				mysqli_execute_query($GLOBALS['dbi'], $sql, [$ticket_id, $time, $det_email, $messagesql]);
 
 				//ticketstatus anpassen
-				mysql_query("UPDATE ls_tickets SET modified='$time', status=1, supporter='$det_email' WHERE id='$ticket_id';", $db);
+				$sql = "UPDATE ls_tickets SET modified=?, status=?, supporter=? WHERE id=?";
+				mysqli_execute_query($GLOBALS['dbi'], $sql, [$time, 1, $det_email, $ticket_id]);
 			}
 
 			if($_REQUEST['close']==1)
 			{
 				//ticketstatus anpassen
-				mysql_query("UPDATE ls_tickets SET modified='$time', status=1, supporter='$det_email' WHERE id='$ticket_id';", $db);
+				$sql = "UPDATE ls_tickets SET modified=?, status=?, supporter=? WHERE id=?";
+				mysqli_execute_query($GLOBALS['dbi'], $sql, [$time, 1, $det_email, $ticket_id]);
 				$row['status']=1;
 			}				
 
@@ -54,9 +59,10 @@ if(isset($_REQUEST['showtid'])){
 			echo '<div style="width: 640px; padding: 5px; background-color: #222222;">'.$row['thema'].' ('.$status.')</div>';
 
 			//die einzelnen posts
-			$db_daten=mysql_query("SELECT * FROM ls_tickets_posts WHERE ticket_id='$ticket_id' ORDER BY created ASC",$db);
+			$sql = "SELECT * FROM ls_tickets_posts WHERE ticket_id=? ORDER BY created ASC";
+			$db_daten = mysqli_execute_query($GLOBALS['dbi'], $sql, [$ticket_id]);
 			$spielername='';
-			while($row = mysql_fetch_array($db_daten))
+			while($row = mysqli_fetch_array($db_daten))
 			{
 				if($spielername=='')$spielername=$row['poster'];
 				//header
@@ -73,7 +79,7 @@ if(isset($_REQUEST['showtid'])){
 
 				//body
 				if($row['poster']==$spielername)$bgcolor='#222222';else $bgcolor='#226622';
-				echo '<div style="text-align:left; width: 640px; margin-top: 1px; padding: 5px; background-color: '.$bgcolor.';">'.utf8_encode($row['message']).'</div>';
+				echo '<div style="text-align:left; width: 640px; margin-top: 1px; padding: 5px; background-color: '.$bgcolor.';">'.$row['message'].'</div>';
 			}
 
 			//antwortformular
@@ -92,19 +98,21 @@ else
 {
 	echo '<div style="font-size: 20px;">Offene Tickets</div>';
 
-		$db_daten=mysql_query("SELECT * FROM ls_tickets WHERE status=0  ORDER BY created DESC",$db);
-    	$num = mysql_num_rows($db_daten);
+		$sql = "SELECT * FROM ls_tickets WHERE status=0 ORDER BY created DESC";
+		$db_daten = mysqli_execute_query($GLOBALS['dbi'], $sql);
+    	$num = mysqli_num_rows($db_daten);
     	if($num>0)
     	{
     		//kopf
     		echo '<table width="100%">';
     		echo '<tr><td>Betreff</td><td>User</td><td>erstellt</td><td>letzte &auml;nderung</td><td>Supporter</td></tr>';
     	
-    		while($row = mysql_fetch_array($db_daten))
+    		while($row = mysqli_fetch_array($db_daten))
     		{
     			//spielernamen auslesen
-    			$db_datenx=mysql_query("SELECT * FROM ls_user WHERE user_id=".$row['user_id'],$db);
-    			$rowx = mysql_fetch_array($db_datenx);
+    			$sql = "SELECT * FROM ls_user WHERE user_id=?";
+    			$db_datenx = mysqli_execute_query($GLOBALS['dbi'], $sql, [$row['user_id']]);
+    			$rowx = mysqli_fetch_array($db_datenx);
     			
     			echo '<tr>';
     			echo '<td><a href="tickets.php?showtid='.$row['id'].'">'.$row['thema'].'</a></td>';
@@ -126,19 +134,21 @@ echo '<br><hr><br>';
 
 echo '<div style="font-size: 20px;">Beantwortete Tickets</div>';
 
-		$db_daten=mysql_query("SELECT * FROM ls_tickets WHERE status=1  ORDER BY created DESC LIMIT 50",$db);
-    	$num = mysql_num_rows($db_daten);
+		$sql = "SELECT * FROM ls_tickets WHERE status=1 ORDER BY created DESC LIMIT 50";
+		$db_daten = mysqli_execute_query($GLOBALS['dbi'], $sql);
+    	$num = mysqli_num_rows($db_daten);
     	if($num>0)
     	{
     		//kopf
     		echo '<table width="100%">';
     		echo '<tr><td>Betreff</td><td>Spieler</td><td>erstellt</td><td>letzte &auml;nderung</td><td>Supporter</td></tr>';
     	
-    		while($row = mysql_fetch_array($db_daten))
+    		while($row = mysqli_fetch_array($db_daten))
     		{
     			//spielernamen auslesen
-    			$db_datenx=mysql_query("SELECT * FROM ls_user WHERE user_id=".$row['user_id'],$db);
-    			$rowx = mysql_fetch_array($db_datenx);
+    			$sql = "SELECT * FROM ls_user WHERE user_id=?";
+    			$db_datenx = mysqli_execute_query($GLOBALS['dbi'], $sql, [$row['user_id']]);
+    			$rowx = mysqli_fetch_array($db_datenx);
     			
     			echo '<tr>';
     			echo '<td><a href="tickets.php?showtid='.$row['id'].'">'.$row['thema'].'</a></td>';

@@ -33,8 +33,12 @@ if($fastlogin>0){
 }
 
 //das passwort verschlüsselt aus der db auslesen und übertragen
-$db_daten=mysql_query("SELECT pass FROM ls_user WHERE user_id='".intval($_SESSION['ums_user_id'])."';",$db);
-$row = mysql_fetch_array($db_daten);
+$db_daten = mysqli_execute_query(
+    $GLOBALS['dbi'],
+    "SELECT pass FROM ls_user WHERE user_id=?",
+    [$_SESSION['ums_user_id']]
+);
+$row = mysqli_fetch_array($db_daten, MYSQLI_ASSOC);
 $pass='&pass='.$row["pass"];
 $accountverwaltung_passwort=$row["pass"];
 
@@ -42,8 +46,17 @@ $accountverwaltung_passwort=$row["pass"];
 //if($_SESSION['ums_user_id']==1){
   $databaseKey = $serverdata[$target]['databaseKey'] ?? '';
 
-	$db_temp = mysqli_connect($GLOBALS['env_databaseKey'][$databaseKey]['host'], $GLOBALS['env_databaseKey'][$databaseKey]['user'], $GLOBALS['env_databaseKey'][$databaseKey]['password']);
-  mysqli_select_db ($db_temp, $GLOBALS['env_databaseKey'][$databaseKey]['database']);
+  $db_temp = mysqli_connect(
+      $GLOBALS['env_databaseKey'][$databaseKey]['host'], 
+      $GLOBALS['env_databaseKey'][$databaseKey]['user'], 
+      $GLOBALS['env_databaseKey'][$databaseKey]['password'], 
+      $GLOBALS['env_databaseKey'][$databaseKey]['database']
+  );
+  
+  // Fehlerbehandlung für die Verbindung
+  if (mysqli_connect_errno()) {
+      die("Verbindung zur Datenbank fehlgeschlagen: " . mysqli_connect_error());
+  }
 
 	//das aktuelle Passwort setzen und einen Loginkey vergeben
 
@@ -57,11 +70,18 @@ $accountverwaltung_passwort=$row["pass"];
   
   if($serverdata[$target][8]!=5){
     //DE
-    mysqli_query($db_temp, "UPDATE de_login SET loginkey='$loginkey', loginkeytime=UNIX_TIMESTAMP( ), loginkeyip='$ip', pass='$accountverwaltung_passwort' WHERE owner_id = '".intval($_SESSION['ums_user_id'])."';");
+    mysqli_execute_query(
+        $db_temp,
+        "UPDATE de_login SET loginkey=?, loginkeytime=UNIX_TIMESTAMP(), loginkeyip=?, pass=? WHERE owner_id=?",
+        [$loginkey, $ip, $accountverwaltung_passwort, $_SESSION['ums_user_id']]
+    );
   }else{
     //Andalur
-    mysqli_query($db_temp, "UPDATE db_user_data SET loginkey='$loginkey', loginkeytime=UNIX_TIMESTAMP( ), loginkeyip='$ip' WHERE owner_id = '".intval($_SESSION['ums_user_id'])."';");
-
+    mysqli_execute_query(
+        $db_temp,
+        "UPDATE db_user_data SET loginkey=?, loginkeytime=UNIX_TIMESTAMP(), loginkeyip=? WHERE owner_id=?",
+        [$loginkey, $ip, $_SESSION['ums_user_id']]
+    );
   }
 
 $url="https://".$serverdata[$target][5].$serverdata[$target][6].'index.php?loginkey='.$result;
@@ -95,8 +115,6 @@ if($result=='error'){
   echo '</div>';
 
 }
-
-//print_r($_SESSION);
 
 ?>
 </div>

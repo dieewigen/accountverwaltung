@@ -1,4 +1,5 @@
 <?php
+include_once "../inc/sv.inc.php";
 include "../inccon.php";
 ?>
 <html>
@@ -30,10 +31,11 @@ return ((float)$usec + (float)$sec);
 $time_start = getmicrotime();
 
 // Oberservation_tag entfernen
-if ($_GET['uid']) 
+if (isset($_GET['uid'])) 
 {
-  $uid=intval($_GET['uid']);
-  @mysql_query("UPDATE ls_user SET observation_by = '' WHERE user_id = '$uid'", $db);
+  $uid = intval($_GET['uid']);
+  $sql = "UPDATE ls_user SET observation_by = '' WHERE user_id = ?";
+  @mysqli_execute_query($GLOBALS['dbi'], $sql, [$uid]);
 }
 
 // table start
@@ -50,9 +52,10 @@ echo '
     </tr>
 ';
 
-//abfrage ob es fälle zur beobachtung gibt
-$db_daten = mysql_query("SELECT * FROM ls_user WHERE observation_by <>'' ORDER BY observation_by, user_id", $db);
-while ($row = mysql_fetch_array($db_daten)) {
+//abfrage ob es fï¿½lle zur beobachtung gibt
+$sql = "SELECT * FROM ls_user WHERE observation_by <>'' ORDER BY observation_by, user_id";
+$db_daten = mysqli_execute_query($GLOBALS['dbi'], $sql);
+while ($row = mysqli_fetch_array($db_daten)) {
 
   switch ($row['acc_status']) {
     case 0:
@@ -88,9 +91,7 @@ echo '
 ';
 
 
-//$exist_observation = mysql_query("SELECT")
-
-mysql_close($db);
+//$exist_observation = mysqli_execute_query($GLOBALS['dbi'], "SELECT...");
 
   $time_end = getmicrotime();
   $ltime = number_format($time_end - $time_start,2,".","");

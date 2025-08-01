@@ -1,4 +1,5 @@
 <?php
+include_once "../inc/sv.inc.php";
 include "../inccon.php";
 ?>
 
@@ -10,7 +11,7 @@ include "../inccon.php";
 </head>
 <body>
 <form action="de_user_search.php" method="get">
-(+ ID, - Login, * Nick, % Mail, ~ ip,| name, ° ort) (?[-*%~|°] wildcard)
+(+ ID, * Spielername, % Mail) (?[-*%~|] wildcard)
 &nbsp;&nbsp;
 <input type="text" name="sstr" value="">
 <input type="Submit" name="search" value="Suchen">
@@ -24,56 +25,32 @@ include "../inccon.php";
 //~ IP
 
 //| Vor-/Nachname
-//° Ort
+//ï¿½ Ort
 
-$sstr=$_REQUEST['sstr'];
+$sstr = isset($_REQUEST['sstr']) ? $_REQUEST['sstr'] : '';
   if ($sstr!='')
   switch($sstr[0]){
     case '+': //user_id
       $sstr = str_replace($sstr[0].$sstr[1],$sstr[1],$sstr);
-      $db_daten=mysql_query("SELECT user_id FROM ls_user WHERE user_id='$sstr'",$db);
-      $row = mysql_fetch_array($db_daten);
-      $sstr=$row["user_id"];
-      break;
-    case '-': //nic
-      $sstr = str_replace($sstr[0].$sstr[1],$sstr[1],$sstr);
-      $db_daten=mysql_query("SELECT user_id FROM ls_user WHERE loginname='$sstr'",$db);
-      $row = mysql_fetch_array($db_daten);
+      $sql = "SELECT user_id FROM ls_user WHERE user_id=?";
+      $db_daten = mysqli_execute_query($GLOBALS['dbi'], $sql, [$sstr]);
+      $row = mysqli_fetch_array($db_daten);
       $sstr=$row["user_id"];
       break;
     case '*': //spielername
       $sstr = str_replace($sstr[0].$sstr[1],$sstr[1],$sstr);
-      $db_daten=mysql_query("SELECT user_id FROM ls_user WHERE spielername='$sstr'",$db);
-      $row = mysql_fetch_array($db_daten);
+      $sql = "SELECT user_id FROM ls_user WHERE spielername=?";
+      $db_daten = mysqli_execute_query($GLOBALS['dbi'], $sql, [$sstr]);
+      $row = mysqli_fetch_array($db_daten);
       $sstr=$row["user_id"];
       break;
     case '%': //email-adresse
       $sstr = str_replace($sstr[0].$sstr[1],$sstr[1],$sstr);
-      $db_daten=mysql_query("SELECT user_id FROM ls_user WHERE reg_mail='$sstr'",$db);
-      $row = mysql_fetch_array($db_daten);
+      $sql = "SELECT user_id FROM ls_user WHERE reg_mail=?";
+      $db_daten = mysqli_execute_query($GLOBALS['dbi'], $sql, [$sstr]);
+      $row = mysqli_fetch_array($db_daten);
       $sstr=$row["user_id"];
       break;
-    case '~': //ip-adresse
-      $sstr = str_replace($sstr[0].$sstr[1],$sstr[1],$sstr);
-      $db_daten=mysql_query("SELECT user_id FROM ls_user WHERE last_ip='$sstr'",$db);
-      $countmultiip = mysql_num_rows($db_daten);
-      if($countmultiip>1) echo "<b><font color=\"#FF0000\">Multi</font></b>";
-      $row = mysql_fetch_array($db_daten);
-      $sstr=$row["user_id"];
-      break;
-    case '|': //Vor-/Nachname
-      $sstr = str_replace($sstr[0].$sstr[1],$sstr[1],$sstr);
-      $db_daten=mysql_query("SELECT user_id FROM ls_user WHERE vorname='$sstr' or nachname='$sstr'",$db);
-      $row = mysql_fetch_array($db_daten);
-      $sstr=$row["user_id"];
-      break;
-    case '°': //Ort
-      $sstr = str_replace($sstr[0].$sstr[1],$sstr[1],$sstr);
-      $db_daten=mysql_query("SELECT user_id FROM ls_user WHERE ort like '$sstr'",$db);
-      $row = mysql_fetch_array($db_daten);
-      $sstr=$row["user_id"];
-      break;
-
     case '?': //wildcard suche
       $sstr = str_replace($sstr[0].$sstr[1],$sstr[1],$sstr);
       $sstr = str_replace("%","$",$sstr);
@@ -82,8 +59,9 @@ $sstr=$_REQUEST['sstr'];
       break;      
     default: //user_id
       $sstr = str_replace($sstr[0].$sstr[1],$sstr[1],$sstr);
-      $db_daten=mysql_query("SELECT user_id FROM ls_user WHERE user_id='$sstr'",$db);
-      $row = mysql_fetch_array($db_daten);
+      $sql = "SELECT user_id FROM ls_user WHERE user_id=?";
+      $db_daten = mysqli_execute_query($GLOBALS['dbi'], $sql, [$sstr]);
+      $row = mysqli_fetch_array($db_daten);
       $sstr=$row["user_id"];
       break;
   }//switch sstr ende
@@ -95,7 +73,6 @@ echo '&nbsp;&nbsp;User ID: '.$sstr;
 echo '<br>&nbsp;&nbsp;&nbsp;&nbsp;<a href="info.php?uid='.$sstr.'" target="de_user_anzeige">Info</a>';
 echo '&nbsp;&nbsp;&nbsp;&nbsp;<a href="de_user_logviewer.php?uid='.$sstr.'" target="de_user_anzeige">Logviewer 2</a>';
 echo '&nbsp;&nbsp;&nbsp;&nbsp;<a href="de_user_ips.php?uid='.$sstr.'" target="de_user_anzeige">IPs</a>';
-//echo '&nbsp;&nbsp;&nbsp;&nbsp;<a href="de_user_jsonlog.php?uid='.$sstr.'" target="de_user_anzeige">Logviewer</a>';
 echo '&nbsp;&nbsp;&nbsp;&nbsp;<a href="de_user_credits.php?uid='.$sstr.'" target="de_user_anzeige">Credits</a>';
 echo '</form>';
 

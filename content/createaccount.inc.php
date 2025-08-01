@@ -7,18 +7,25 @@ $gametyp=$serverdata[$target][8];
 //überprüfen ob man die voraussetzungen für den server hat
 $hasall=1;
 //platz in der globalen rangliste
-$db_daten=mysql_query("SELECT COUNT(*)AS wert FROM ls_user WHERE tlscore > (SELECT tlscore FROM ls_user WHERE user_id='".$_SESSION['ums_user_id']."')",$db);
-$row = mysql_fetch_array($db_daten);
+$db_daten = mysqli_execute_query(
+    $GLOBALS['dbi'],
+    "SELECT COUNT(*) AS wert FROM ls_user WHERE tlscore > (SELECT tlscore FROM ls_user WHERE user_id = ?)",
+    [$_SESSION['ums_user_id']]
+);
+$row = mysqli_fetch_array($db_daten, MYSQLI_ASSOC);
 $vb_ranglistenplatz=$row["wert"]+1;
 
 if($vb_ranglistenplatz>$serverdata[$target][11][0])$hasall=-1;
 //auf betauser testen
 if($serverdata[$target][11][1]==1)
 {
-  $sql = "SELECT * FROM ls_user WHERE user_id='".$_SESSION['ums_user_id']."';";
-  $result = mysql_query($sql) OR die(mysql_error());
-  $row = mysql_fetch_array($result);
-  if($row[betatester]==0)$hasall=-2;
+  $result = mysqli_execute_query(
+      $GLOBALS['dbi'],
+      "SELECT * FROM ls_user WHERE user_id = ?",
+      [$_SESSION['ums_user_id']]
+  );
+  $row = mysqli_fetch_array($result, MYSQLI_ASSOC);
+  if($row['betatester']==0)$hasall=-2;
 }
 
 //fehlermeldung ausgeben, wenn nicht alle vorbedinungen erfüllt sind, sonst ok-meldung ausgeben
@@ -76,10 +83,13 @@ if(isset($_POST['button']) AND $hasall==1){
 			if(!preg_match("/^[[:alpha:]0-9äöü_=-]*$/i", $spielername)){
 				$errmsg.='<font color="FF0000">'.$createaccount_lang['msg_2'].': _-=).</font>';
 			}else{
-				//fehlende daten f�r das erstellen des accounts auslesen
-				$sql = "SELECT * FROM ls_user WHERE user_id='".$_SESSION['ums_user_id']."';";
-				$result = mysql_query($sql) OR die(mysql_error());
-				$row = mysql_fetch_array($result);
+				//fehlende daten für das erstellen des accounts auslesen
+				$result = mysqli_execute_query(
+				    $GLOBALS['dbi'],
+				    "SELECT * FROM ls_user WHERE user_id = ?",
+				    [$_SESSION['ums_user_id']]
+				);
+				$row = mysqli_fetch_array($result, MYSQLI_ASSOC);
 
 				$email=$row["reg_mail"];
 				$vorname=$row["vorname"];
@@ -151,9 +161,12 @@ if($errmsg!='')echo $errmsg;
 
 //wenn es keinen spielernamen gibt den standardnamen auslesen
 if($spielername==''){
-	$sql = "SELECT spielername FROM ls_user WHERE user_id='".$_SESSION['ums_user_id']."';";
-	$result = mysql_query($sql) OR die(mysql_error());
-	$row = mysql_fetch_array($result);
+	$result = mysqli_execute_query(
+	    $GLOBALS['dbi'],
+	    "SELECT spielername FROM ls_user WHERE user_id = ?",
+	    [$_SESSION['ums_user_id']]
+	);
+	$row = mysqli_fetch_array($result, MYSQLI_ASSOC);
 	$spielername=$row["spielername"];
 }
 

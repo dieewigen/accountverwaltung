@@ -1,4 +1,5 @@
 <?php
+include_once "../inc/sv.inc.php";
 include "../inccon.php";
 ?>
 <html>
@@ -24,8 +25,10 @@ IP Adressen des gleichen Oktetts:
 <a href="multi.php?okt=3">[ 3 ]</a> -
 <a href="multi.php?okt=4">[ 4 ]</a> <br><br><br>
 <?php
-if(!isset($okt))
+if(!isset($_GET['okt']))
 $okt=4;
+else
+$okt = intval($_GET['okt']);
 
 include "det_userdata.inc.php";
 
@@ -40,11 +43,12 @@ $last_login=date("Y-m-d H:i:s",$tis);
  
 $time_start = getmicrotime();
 
-$db_daten=mysql_query("select SUBSTRING_INDEX(last_ip, '.', $okt) as last_ip, count(last_ip) 'zaehler' from ls_user WHERE last_ip<>'127.0.0.1' AND last_login>'$last_login' group by last_ip ORDER BY `zaehler`, last_ip DESC",$db);
+$sql = "SELECT SUBSTRING_INDEX(last_ip, '.', ?) AS last_ip, COUNT(last_ip) 'zaehler' FROM ls_user WHERE last_ip<>'127.0.0.1' AND last_login>? GROUP BY last_ip ORDER BY `zaehler`, last_ip DESC";
+$db_daten = mysqli_execute_query($GLOBALS['dbi'], $sql, [$okt, $last_login]);
 
 $gesuser=0;
 
-while($row = mysql_fetch_array($db_daten))
+while($row = mysqli_fetch_array($db_daten))
 {
   if (($row["zaehler"]>1)&&($row["last_ip"]<>''))
   {
@@ -72,8 +76,9 @@ while($row = mysql_fetch_array($db_daten))
     echo '</tr>';
 
 
-    $result=mysql_query("SELECT * FROM ls_user WHERE last_ip like '$ip%' order by pass",$db);
-    while($user = mysql_fetch_array($result))
+    $sql = "SELECT * FROM ls_user WHERE last_ip LIKE CONCAT(?, '%') ORDER BY pass";
+    $result = mysqli_execute_query($GLOBALS['dbi'], $sql, [$ip]);
+    while($user = mysqli_fetch_array($result))
     {
      if ($oldpass==$user["pass"]) $str=' class="r"'; else $str='';
      $oldpass=$user["pass"];
@@ -118,13 +123,11 @@ while($row = mysql_fetch_array($db_daten))
     echo '</table><br><br>';
   }
 }
-echo 'Verd‰chtige: '.$gesuser;
+echo 'Verd√§chtige: '.$gesuser;
 /*
 select last_ip, count(last_ip) "zaehler" from de_login group by last_ip ORDER BY `zaehler` DESC LIMIT 0, 30
 update de_login set status=2 where last_ip='217.225.120.26'
 select * from de_login where last_ip= '217.225.120.26'*/
-
-mysql_close($db);
 
   $time_end = getmicrotime();
   $ltime = number_format($time_end - $time_start,2,".","");

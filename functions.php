@@ -1,13 +1,4 @@
 <?php
-function SecureValue($value)
-{
-	
-	$value = htmlspecialchars(stripslashes($value), ENT_COMPAT | ENT_HTML401, 'ISO-8859-1');
-    $value = mysql_real_escape_string($value);	
-	
-	return ($value);
-}
-
 function doPost($uri,$postdata,$host){
 
 	error_reporting(E_ALL);

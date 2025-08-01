@@ -59,12 +59,24 @@ document.cookie = "cpass='.md5($row['pass']).'; expires=" + expires.toUTCString(
 			$parts=explode(".",$ip);
 			$ip=$parts[0].'.x.'.$parts[2].'.'.$parts[3];
 
-			mysqli_query($GLOBALS['dbi'], "UPDATE ls_user SET logins=logins+1, last_login=NOW(), last_ip='$ip' WHERE user_id='$_SESSION[ums_user_id]'");
+			mysqli_execute_query(
+				$GLOBALS['dbi'],
+				"UPDATE ls_user SET logins=logins+1, last_login=NOW(), last_ip=? WHERE user_id=?",
+				[$ip, $_SESSION['ums_user_id']]
+			);
 
 			//hat er das alternative pw benutzt?
 			if($use_newpass){
-				mysqli_query($GLOBALS['dbi'], "UPDATE ls_user SET pass=newpass WHERE user_id='".$_SESSION['ums_user_id']."'");
-				mysqli_query($GLOBALS['dbi'], "UPDATE ls_user set newpass='' WHERE user_id='".$_SESSION['ums_user_id']."'");
+				mysqli_execute_query(
+					$GLOBALS['dbi'],
+					"UPDATE ls_user SET pass=newpass WHERE user_id=?",
+					[$_SESSION['ums_user_id']]
+				);
+				mysqli_execute_query(
+					$GLOBALS['dbi'],
+					"UPDATE ls_user set newpass='' WHERE user_id=?",
+					[$_SESSION['ums_user_id']]
+				);
 			}
 			
 			echo '

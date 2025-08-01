@@ -1,4 +1,5 @@
 <?php
+include_once "../inc/sv.inc.php";
 include "../inccon.php";
 ?>
 <html>
@@ -46,8 +47,9 @@ include "det_userdata.inc.php";
     echo '<td>Werber-ID</td>';
     echo '</tr>';
 
-$result=mysql_query("SELECT * FROM ls_user ORDER BY `user_id` DESC limit 500",$db);
-while($user = mysql_fetch_array($result)){
+$sql = "SELECT * FROM ls_user ORDER BY `user_id` DESC LIMIT 500";
+$result = mysqli_execute_query($GLOBALS['dbi'], $sql);
+while($user = mysqli_fetch_array($result)){
   if ($user["acc_status"]==0) $status='Inaktiv';
   if ($user["acc_status"]==1) $status='Aktiv';
   if ($user["acc_status"]==2) $status='Gesperrt';
@@ -71,9 +73,6 @@ while($user = mysql_fetch_array($result)){
 
 }
 echo '</table><br><br>';
-
-
-mysql_close($db);
 
   $time_end = getmicrotime();
   $ltime = number_format($time_end - $time_start,2,".","");

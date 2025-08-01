@@ -4,8 +4,12 @@ $errmsg = '';
 
 echo '<div style="width: 100%;">';
 
-$db_daten = mysqli_query($GLOBALS['dbi'], "SELECT * FROM ls_user WHERE user_id = '".intval($_SESSION['ums_user_id'])."';");
-$row = mysqli_fetch_array($db_daten);
+$db_daten = mysqli_execute_query(
+    $GLOBALS['dbi'],
+    "SELECT * FROM ls_user WHERE user_id = ?",
+    [$_SESSION['ums_user_id']]
+);
+$row = mysqli_fetch_array($db_daten, MYSQLI_ASSOC);
 
 //account löschen
 if (isset($_POST['delpass']) || isset($_POST['delcheck1']) || isset($_POST['delcheck2']) || isset($_POST['delbutton'])) {
@@ -30,7 +34,11 @@ if (isset($_POST['delpass']) || isset($_POST['delcheck1']) || isset($_POST['delc
             //wenn er keinen aktiven spielaccount hat, dann den hauptaccount löschen
             if ($anzacc == 0) {
                 //account löschen
-                mysqli_query($GLOBALS['dbi'], "DELETE FROM ls_user WHERE user_id = '".intval($_SESSION['ums_user_id']).";'");
+                mysqli_execute_query(
+                    $GLOBALS['dbi'],
+                    "DELETE FROM ls_user WHERE user_id = ?",
+                    [$_SESSION['ums_user_id']]
+                );
 
                 session_destroy();
                 echo '
@@ -68,7 +76,11 @@ if (isset($_POST['oldpass']) || isset($_POST['newpass']) || isset($_POST['pass1'
             $minpwchars = 6;
             if (strlen($pass1) > $minpwchars - 1) {
                 $pass1_crypt = password_hash($pass1, PASSWORD_DEFAULT);
-                mysqli_query($GLOBALS['dbi'], "UPDATE ls_user SET pass = '$pass1_crypt', newpass='' WHERE user_id = '".intval($_SESSION['ums_user_id'])."'");
+                mysqli_execute_query(
+                    $GLOBALS['dbi'],
+                    "UPDATE ls_user SET pass = ?, newpass='' WHERE user_id = ?",
+                    [$pass1_crypt, $_SESSION['ums_user_id']]
+                );
                 $errmsg .= '<font color="00FF00">'.$account_lang['msg_7'].'</font>';
             } else {
                 $errmsg .= '<font color="FF0000">'.$account_lang['msg_4'].': '.$minpwchars.').</font>';

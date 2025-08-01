@@ -1,12 +1,8 @@
 <?php
 //if($disablegzip!=1)ob_start("ob_gzhandler");
 //ignore_user_abort(true);
+//include_once "inc/sv.inc.php";
 include_once "inc/env.inc.php";
-include_once 'lib/mysql_wrapper.inc.php';
-
-$db = @mysql_connect($GLOBALS['env_db_loginsystem_host'], $GLOBALS['env_db_loginsystem_user'], $GLOBALS['env_db_loginsystem_password'], true) or die("Keine Verbindung zur Datenbank möglich.");
-mysql_select_db($GLOBALS['env_db_loginsystem_database'], $db);
-mysql_set_charset("utf8mb4", $db);
 
 $GLOBALS['dbi'] = mysqli_connect($GLOBALS['env_db_loginsystem_host'], $GLOBALS['env_db_loginsystem_user'], $GLOBALS['env_db_loginsystem_password'], $GLOBALS['env_db_loginsystem_database']) or die("Keine Verbindung zur Datenbank möglich.");
 $GLOBALS['dbi']->set_charset("utf8mb4");

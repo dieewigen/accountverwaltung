@@ -8,7 +8,14 @@ $time = time();
 if ($_REQUEST['page'] == 1) {
 
     if (!isset($_REQUEST['showtid'])) {
+        /* Altes Statement:
         $db_daten = mysqli_query($GLOBALS['dbi'], "SELECT * FROM ls_tickets WHERE user_id='".intval($_SESSION['ums_user_id'])."' ORDER BY status ASC, modified DESC");
+        */
+        $db_daten = mysqli_execute_query(
+            $GLOBALS['dbi'],
+            "SELECT * FROM ls_tickets WHERE user_id=? ORDER BY status ASC, modified DESC",
+            [$_SESSION['ums_user_id']]
+        );
         $num = mysqli_num_rows($db_daten);
         if ($num > 0) {
             //kopf
@@ -39,7 +46,14 @@ if ($_REQUEST['page'] == 1) {
         }
     } else { //ticket anzeigen mit Eingabemöglichkeit für eine Antwort
         $ticket_id = intval($_REQUEST['showtid']);
+        /* Altes Statement:
         $db_daten = mysqli_query($GLOBALS['dbi'], "SELECT * FROM ls_tickets WHERE user_id='".intval($_SESSION['ums_user_id'])."' AND id='$ticket_id'");
+        */
+        $db_daten = mysqli_execute_query(
+            $GLOBALS['dbi'],
+            "SELECT * FROM ls_tickets WHERE user_id=? AND id=?",
+            [$_SESSION['ums_user_id'], $ticket_id]
+        );
         $num = mysqli_num_rows($db_daten);
         if ($num > 0) {
             $row = mysqli_fetch_array($db_daten);
@@ -53,10 +67,24 @@ if ($_REQUEST['page'] == 1) {
                     $messagesql = utf8_decode($messagesql);
 
                     //nachricht hinterlegen
+                    /* Altes Statement:
                     mysqli_query($GLOBALS['dbi'], "INSERT INTO ls_tickets_posts SET ticket_id='$ticket_id', created='$time', poster='$ums_spielername', message='$messagesql';");
+                    */
+                    mysqli_execute_query(
+                        $GLOBALS['dbi'],
+                        "INSERT INTO ls_tickets_posts SET ticket_id=?, created=?, poster=?, message=?",
+                        [$ticket_id, $time, $ums_spielername, $messagesql]
+                    );
 
                     //ticketstatus anpassen
+                    /* Altes Statement:
                     mysqli_query($GLOBALS['dbi'], "UPDATE ls_tickets SET modified='$time', status=0 WHERE id='$ticket_id';");
+                    */
+                    mysqli_execute_query(
+                        $GLOBALS['dbi'],
+                        "UPDATE ls_tickets SET modified=?, status=0 WHERE id=?",
+                        [$time, $ticket_id]
+                    );
                 }
 
 
@@ -64,7 +92,14 @@ if ($_REQUEST['page'] == 1) {
                 echo '<div style="width: 100%; padding: 5px; background-color: #222222;">'.$row['thema'].'</div>';
 
                 //die einzelnen posts
+                /* Altes Statement:
                 $db_daten = mysqli_query($GLOBALS['dbi'], "SELECT * FROM ls_tickets_posts WHERE ticket_id='$ticket_id' ORDER BY created ASC");
+                */
+                $db_daten = mysqli_execute_query(
+                    $GLOBALS['dbi'],
+                    "SELECT * FROM ls_tickets_posts WHERE ticket_id=? ORDER BY created ASC",
+                    [$ticket_id]
+                );
                 while ($row = mysqli_fetch_array($db_daten)) {
                     //header
                     if ($row['poster'] == $ums_spielername) {
@@ -101,19 +136,9 @@ elseif ($_REQUEST['page'] == 2) {
     unset($themen);
     $themen[] = 'Bitte ausw&auml;hlen';
     $themen[] = 'Accountverwaltung';
-    $themen[] = 'Crediterwerb';
-    $themen[] = 'Forum';
     $themen[] = 'Die Ewigen - Allgemein';
     $themen[] = 'Die Ewigen - xDE';
     $themen[] = 'Die Ewigen - SDE';
-    $themen[] = 'Die Ewigen - RDE';
-    $themen[] = 'Die Ewigen - CDE';
-    $themen[] = 'Die Ewigen - EDE';
-    $themen[] = 'Die Ewigen - DDE';
-    $themen[] = 'Die Ewigen - EA1';
-    //$themen[]='Die Ewigen - EFTA1';
-    $themen[] = 'Andalur';
-    //$themen[]='Stolen Empires';
     $themen[] = 'Sonstiges';
 
     $hasall = 1;
@@ -137,10 +162,23 @@ elseif ($_REQUEST['page'] == 2) {
         $messagesql = htmlspecialchars($messagesql, ENT_COMPAT | ENT_HTML401, 'ISO-8859-1');
         $messagesql = str_replace('\r\n', '<br>', $messagesql);
         $messagesql = utf8_decode($messagesql);
-
-        mysqli_query($GLOBALS['dbi'], "INSERT INTO ls_tickets SET user_id='".intval($_SESSION['ums_user_id'])."', thema='$themasql', created='$time', modified='$time', status=0;");
-        $ticket_id = mysql_insert_id();
-        mysqli_query($GLOBALS['dbi'], "INSERT INTO ls_tickets_posts SET ticket_id='$ticket_id', created='$time', poster='$ums_spielername', message='$messagesql';");
+       
+        // Neues Statement mit mysqli_execute_query (PHP 8.4+)
+        mysqli_execute_query(
+            $GLOBALS['dbi'],
+            "INSERT INTO ls_tickets SET user_id=?, thema=?, created=?, modified=?, status=0",
+            [$_SESSION['ums_user_id'], $themasql, $time, $time]
+        );
+        
+        // Ticket ID abrufen
+        $ticket_id = mysqli_insert_id($GLOBALS['dbi']);
+        
+        // Zweites Statement mit mysqli_execute_query
+        mysqli_execute_query(
+            $GLOBALS['dbi'],
+            "INSERT INTO ls_tickets_posts SET ticket_id=?, created=?, poster=?, message=?",
+            [$ticket_id, $time, $ums_spielername, $messagesql]
+        );
         //info per e-mail an die supporter
         require_once 'lib/phpmailer/class.phpmailer.php';
         require_once 'lib/phpmailer/class.smtp.php';

@@ -12,7 +12,7 @@ if( (isset($_POST["email"]) && $_POST["email"]) ){ //schauen ob was eingegeben w
 	$num = mysqli_num_rows($result);
 
 	if($num==1){ //user existiert
-		$row = mysql_fetch_array($result);
+		$row = mysqli_fetch_array($result, MYSQLI_ASSOC);
 		//alternativpasswort setzen und versenden
 
 		//neues pw generieren
@@ -24,8 +24,11 @@ if( (isset($_POST["email"]) && $_POST["email"]) ){ //schauen ob was eingegeben w
 
 		//passwort in db eintragen
 		$uid=$row["user_id"];
-		$sql="UPDATE ls_user set newpass='$newpass_crypt' WHERE user_id='$uid'";
-		mysql_query($sql, $db);
+		mysqli_execute_query(
+			$GLOBALS['dbi'],
+			"UPDATE ls_user set newpass=? WHERE user_id=?",
+			[$newpass_crypt, $uid]
+		);
 		//passwort versenden
 		$text=utf8_decode($pwsend_lang['msg_1']);
 
