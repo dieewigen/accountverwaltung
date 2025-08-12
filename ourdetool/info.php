@@ -5,13 +5,6 @@ include "det_userdata.inc.php";
 include "../inc/serverdata.inc.php";
 include "../functions.php";
 
-if(isset($_REQUEST)){
-	foreach ($_REQUEST as $key => $val){
-		$_REQUEST[$key] = mysql_real_escape_string($val);
-		$$key = $_REQUEST[$key];
-	}
-}
-
 $uid=$_REQUEST['uid'];
 
 ?>
@@ -87,31 +80,31 @@ function AddMsg(NewMsg) {
 //beobachter setzen
 if($observationgo) 
 {
-	mysql_query("UPDATE ls_user SET observation_by = '$det_username' WHERE user_id='$uid'", $db);
+	mysqli_execute_query($GLOBALS['dbi'], "UPDATE ls_user SET observation_by = ? WHERE user_id = ?", [$det_username, $uid]);
 }
 
 if ($stataktiv)
 {
-  mysql_query("UPDATE ls_user SET acc_status=1 WHERE user_id='$uid'",$db);
+  mysqli_execute_query($GLOBALS['dbi'], "UPDATE ls_user SET acc_status = 1 WHERE user_id = ?", [$uid]);
   $savedata=1;
 }
 if ($statgesperrt)
 {
-  mysql_query("UPDATE ls_user SET acc_status=2, supporter='$det_email' WHERE user_id='$uid'",$db);
+  mysqli_execute_query($GLOBALS['dbi'], "UPDATE ls_user SET acc_status = 2, supporter = ? WHERE user_id = ?", [$det_email, $uid]);
   $savedata=1;
 }
 if ($kommentar) $savedata=1;  // For saving the Commenttext
 
 if ($savedata==1 OR $speichern)
 {
-   mysql_query("UPDATE ls_user SET kommentar='$kommentartext',loginname='$loginname', reg_mail='$email', spielername='$spielername', vorname='$vorname', nachname='$nachname', strasse='$strasse', plz='$plz', ort='$ort', land='$land', telefon='$telefon' WHERE user_id='$uid'",$db);
+   mysqli_execute_query($GLOBALS['dbi'], "UPDATE ls_user SET kommentar = ?, loginname = ?, reg_mail = ?, spielername = ?, vorname = ?, nachname = ?, strasse = ?, plz = ?, ort = ?, land = ?, telefon = ? WHERE user_id = ?", [$kommentartext, $loginname, $email, $spielername, $vorname, $nachname, $strasse, $plz, $ort, $land, $telefon, $uid]);
 }
 
 if ($uid>0)
 {
   //ls_user
-  $db_daten=mysql_query("SELECT * FROM ls_user WHERE user_id='$uid'",$db);
-  $row = mysql_fetch_array($db_daten);
+  $result = mysqli_execute_query($GLOBALS['dbi'], "SELECT * FROM ls_user WHERE user_id = ?", [$uid]);
+  $row = mysqli_fetch_array($result);
 
   echo '<table border="0" cellpadding="10" cellspacing="0">';
   echo '<tr><td align="center">';

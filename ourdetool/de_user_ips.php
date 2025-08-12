@@ -16,7 +16,7 @@ $uid=intval($_REQUEST["uid"]);
 
 //alle ips laden und ausgeben
 
-echo 'Hier werden nur die IP-Änderungen und nicht die kompletten Zugriffe angezeigt.<br>';
+echo 'Hier werden nur die IP-ï¿½nderungen und nicht die kompletten Zugriffe angezeigt.<br>';
 
 echo '
 <table border="0">
@@ -31,8 +31,8 @@ echo '
 
 //echo "SELECT time, ip FROM gameserverlogdata WHERE serverid='$sv_servid' AND userid='$uid' ORDER BY time DESC";
 $ipadresse='127.0.0.1';
-$db_daten = mysql_query("SELECT time, ip FROM gameserverlogdata WHERE serverid='$sv_servid' AND userid='$uid' ORDER BY time DESC", $logdb);
-while($row = mysql_fetch_array($db_daten))
+$result = mysqli_execute_query($GLOBALS['logdbi'], "SELECT time, ip FROM gameserverlogdata WHERE serverid = ? AND userid = ? ORDER BY time DESC", [$sv_servid, $uid]);
+while($row = mysqli_fetch_array($result))
 {
   if($ipadresse!=$row["ip"])
   {

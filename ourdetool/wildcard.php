@@ -40,9 +40,9 @@
   switch($sstr[0]){
     case '-': //nic
       $sstr = str_replace($sstr[0].$sstr[1],$sstr[1],$sstr);
-      $db_daten=mysql_query("SELECT user_id, nic FROM ls_user WHERE nic LIKE '%".$sstr."%'",$db);
+      $result = mysqli_execute_query($GLOBALS['dbi'], "SELECT user_id, nic FROM ls_user WHERE nic LIKE ?", ["%".$sstr."%"]);
 
-      while($UData = mysql_fetch_array($db_daten)) {
+      while($UData = mysqli_fetch_array($result)) {
        echo '<tr><td><a href="idinfo.php?UID='.$UData["user_id"].'" target="_blank">'.$UData["user_id"].'</a></td>';
        echo '<td>'.$UData["nic"].'</td></tr>';
        $UCount++;
@@ -51,9 +51,9 @@
       break;
     case '*': //spielername
       $sstr = str_replace($sstr[0].$sstr[1],$sstr[1],$sstr);
-      $db_daten=mysql_query("SELECT user_id, spielername FROM ls_user WHERE spielername LIKE '%".$sstr."%'",$db);
+      $result = mysqli_execute_query($GLOBALS['dbi'], "SELECT user_id, spielername FROM ls_user WHERE spielername LIKE ?", ["%".$sstr."%"]);
 
-      while($UData = mysql_fetch_array($db_daten)) {
+      while($UData = mysqli_fetch_array($result)) {
        echo '<tr><td><a href="idinfo.php?UID='.$UData["user_id"].'" target="_blank">'.$UData["user_id"].'</a></td>';
        echo '<td>'.$UData["spielername"].'</td></tr>';
        $UCount++;
@@ -62,9 +62,9 @@
       break;
     case '$': //email-adresse
       $sstr = str_replace($sstr[0].$sstr[1],$sstr[1],$sstr);
-      $db_daten=mysql_query("SELECT user_id, reg_mail FROM ls_user WHERE reg_mail LIKE '%".$sstr."%'",$db);
+      $result = mysqli_execute_query($GLOBALS['dbi'], "SELECT user_id, reg_mail FROM ls_user WHERE reg_mail LIKE ?", ["%".$sstr."%"]);
 
-      while($UData = mysql_fetch_array($db_daten)) {
+      while($UData = mysqli_fetch_array($result)) {
        echo '<tr><td><a href="idinfo.php?UID='.$UData["user_id"].'" target="_blank">'.$UData["user_id"].'</a></td>';
        echo '<td>'.$UData["reg_mail"].'</td></tr>';
        $UCount++;
@@ -74,8 +74,8 @@
 
     case '~': //IP
       $sstr = str_replace($sstr[0].$sstr[1],$sstr[1],$sstr);
-      $db_daten=mysql_query("SELECT user_id,  last_ip FROM ls_user WHERE  last_ip LIKE '%".$sstr."%' order by last_ip",$db);
-      while($UData = mysql_fetch_array($db_daten)) {
+      $result = mysqli_execute_query($GLOBALS['dbi'], "SELECT user_id, last_ip FROM ls_user WHERE last_ip LIKE ? ORDER BY last_ip", ["%".$sstr."%"]);
+      while($UData = mysqli_fetch_array($result)) {
        echo '<tr><td><a href="idinfo.php?UID='.$UData["user_id"].'" target="_blank">'.$UData["user_id"].'</a></td>';
        echo '<td>'.$UData["last_ip"].'</td></tr>';
        $UCount++;
@@ -85,17 +85,17 @@
 
     case '|': //Vor-/Nachname
       $sstr = str_replace($sstr[0].$sstr[1],$sstr[1],$sstr);
-      $db_daten=mysql_query("SELECT user_id, vorname, nachname FROM ls_user WHERE vorname LIKE '%".$sstr."%' or nachname LIKE '%".$sstr."%'",$db);
-      while($UData = mysql_fetch_array($db_daten)) {
+      $result = mysqli_execute_query($GLOBALS['dbi'], "SELECT user_id, vorname, nachname FROM ls_user WHERE vorname LIKE ? OR nachname LIKE ?", ["%".$sstr."%", "%".$sstr."%"]);
+      while($UData = mysqli_fetch_array($result)) {
        echo '<tr><td><a href="idinfo.php?UID='.$UData["user_id"].'" target="_blank">'.$UData["user_id"].'</a></td>';
        echo '<td>'.$UData["vorname"].' '.$UData["nachname"].'</td></tr>';
        $UCount++;
       }
 	break;
-    case 'ฐ': //Ort
+    case 'รถ': //Ort
       $sstr = str_replace($sstr[0].$sstr[1],$sstr[1],$sstr);
-      $db_daten=mysql_query("SELECT user_id, ort FROM ls_user WHERE ort LIKE '%".$sstr."%'",$db);
-      while($UData = mysql_fetch_array($db_daten)) {
+      $result = mysqli_execute_query($GLOBALS['dbi'], "SELECT user_id, ort FROM ls_user WHERE ort LIKE ?", ["%".$sstr."%"]);
+      while($UData = mysqli_fetch_array($result)) {
        echo '<tr><td><a href="idinfo.php?UID='.$UData["user_id"].'" target="_blank">'.$UData["user_id"].'</a></td>';
        echo '<td>'.$UData["ort"].'</td></tr>';
        $UCount++;

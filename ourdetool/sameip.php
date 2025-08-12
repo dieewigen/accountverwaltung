@@ -33,8 +33,8 @@ include "det_userdata.inc.php";
     echo '</tr>';
 
 
-    $result=mysql_query("select * from ls_user where last_ip='$lip' order by pass",$db);
-    while($user = mysql_fetch_array($result))
+    $result = mysqli_execute_query($GLOBALS['dbi'], "SELECT * FROM ls_user WHERE last_ip = ? ORDER BY pass", [$lip]);
+    while($user = mysqli_fetch_array($result))
     {
       echo '<tr>';
       echo '<td><a href="idinfo.php?UID='.$user["user_id"].'" target="_blank">'.$user["user_id"].'</a></td>';

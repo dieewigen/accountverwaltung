@@ -1,4 +1,5 @@
 <?php
+include 'inc/sv.inc.php';
 include 'inc/serverdata.inc.php';
 
 unset($sl);

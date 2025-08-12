@@ -1,7 +1,7 @@
 <?php
 //if($disablegzip!=1)ob_start("ob_gzhandler");
 //ignore_user_abort(true);
-//include_once "inc/sv.inc.php";
+include_once "inc/sv.inc.php";
 include_once "inc/env.inc.php";
 
 $GLOBALS['dbi'] = mysqli_connect($GLOBALS['env_db_loginsystem_host'], $GLOBALS['env_db_loginsystem_user'], $GLOBALS['env_db_loginsystem_password'], $GLOBALS['env_db_loginsystem_database']) or die("Keine Verbindung zur Datenbank möglich.");

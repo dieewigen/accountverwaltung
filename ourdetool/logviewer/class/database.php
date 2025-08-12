@@ -65,29 +65,13 @@ class database {
 	* @param boolean If true and there is an error, go offline
 	*/
 	function database( $host='localhost', $user, $pass, $db='', $table_prefix='', $goOffline=true ) {
-		// perform a number of fatality checks, then die gracefully
-		if (!function_exists( 'mysql_connect' )) {
-			$mosSystemError = 1;
-			if ($goOffline) {
-				$basePath = dirname( __FILE__ );
-				include $basePath . '/../configuration.php';
-				include $basePath . '/../offline.php';
-				exit();
-			}
-		}
-		if (phpversion() < '4.2.0') {
-			if (!($this->_resource = @mysql_connect( $host, $user, $pass ))) {
-				$mosSystemError = 2;
-				if ($goOffline) {
-					$basePath = dirname( __FILE__ );
-					include $basePath . '/../configuration.php';
-					include $basePath . '/../offline.php';
-					exit();
-				}
-			}
+		// Use global database connection instead of creating a new one
+		if (isset($GLOBALS['dbi']) && $GLOBALS['dbi']) {
+			$this->_resource = $GLOBALS['dbi'];
 		} else {
-			if (!($this->_resource = @mysql_connect( $host, $user, $pass, true ))) {
-				$mosSystemError = 2;
+			// Fallback: create new connection if global one doesn't exist
+			if (!function_exists( 'mysqli_connect' )) {
+				$mosSystemError = 1;
 				if ($goOffline) {
 					$basePath = dirname( __FILE__ );
 					include $basePath . '/../configuration.php';
@@ -95,18 +79,18 @@ class database {
 					exit();
 				}
 			}
-		}
-		if ($db != '' && !mysql_select_db( $db, $this->_resource )) {
-			$mosSystemError = 3;
-			if ($goOffline) {
-				$basePath = dirname( __FILE__ );
-				include $basePath . '/../configuration.php';
-				include $basePath . '/../offline.php';
-				exit();
+			if (!($this->_resource = @mysqli_connect( $host, $user, $pass, $db ))) {
+				$mosSystemError = 2;
+				if ($goOffline) {
+					$basePath = dirname( __FILE__ );
+					include $basePath . '/../configuration.php';
+					include $basePath . '/../offline.php';
+					exit();
+				}
 			}
 		}
 		$this->_table_prefix = $table_prefix;
-        //@mysql_query("SET NAMES 'utf8'", $this->_resource);
+        //mysqli_set_charset($this->_resource, 'utf8');
 		$this->_ticker = 0;
 		$this->_log = array();
 	}
@@ -137,11 +121,7 @@ class database {
 		* Use the appropriate escape string depending upon which version of php
 		* you are running
 		*/
-		if (version_compare(phpversion(), '4.3.0', '<')) {
-			$string = mysql_escape_string($text);
-		} else 	{
-			$string = mysql_real_escape_string($text);
-		}
+		$string = mysqli_real_escape_string($this->_resource, $text);
 
 		return $string;
 	}
@@ -162,7 +142,7 @@ class database {
 		if (strlen( $q ) == 1) {
 			return $q . $s . $q;
 		} else {
-			return $q{0} . $s . $q{1};
+			return $q[0] . $s . $q[1];
 		}
 	}
 	/**
@@ -248,7 +228,7 @@ class database {
 					break;
 				}
 				$l = $k - 1;
-				while ($l >= 0 && $sql{$l} == '\\') {
+				while ($l >= 0 && $sql[$l] == '\\') {
 					$l--;
 					$escaped = !$escaped;
 				}
@@ -291,12 +271,12 @@ class database {
 		}
 		$this->_errorNum = 0;
 		$this->_errorMsg = '';
-		$this->_cursor = mysql_query( $this->_sql, $this->_resource );
+		$this->_cursor = mysqli_query( $this->_resource, $this->_sql );
 		if (!$this->_cursor) {
-			$this->_errorNum = mysql_errno( $this->_resource );
-			$this->_errorMsg = mysql_error( $this->_resource )." SQL=$this->_sql";
+			$this->_errorNum = mysqli_errno( $this->_resource );
+			$this->_errorMsg = mysqli_error( $this->_resource )." SQL=$this->_sql";
 			if ($this->_debug) {
-				trigger_error( mysql_error( $this->_resource ), E_USER_NOTICE );
+				trigger_error( mysqli_error( $this->_resource ), E_USER_NOTICE );
 				//echo "<pre>" . $this->_sql . "</pre>\n";
 				if (function_exists( 'debug_backtrace' )) {
 					foreach( debug_backtrace() as $back) {
@@ -315,14 +295,14 @@ class database {
 	 * @return int The number of affected rows in the previous operation
 	 */
 	function getAffectedRows() {
-		return mysql_affected_rows( $this->_resource );
+		return mysqli_affected_rows( $this->_resource );
 	}
 
 	function query_batch( $abort_on_error=true, $p_transaction_safe = false) {
 		$this->_errorNum = 0;
 		$this->_errorMsg = '';
 		if ($p_transaction_safe) {
-			$si = mysql_get_server_info( $this->_resource );
+			$si = mysqli_get_server_info( $this->_resource );
 			preg_match_all( "/(\d+)\.(\d+)\.(\d+)/i", $si, $m );
 			if ($m[1] >= 4) {
 				$this->_sql = 'START TRANSACTION;' . $this->_sql . '; COMMIT;';
@@ -337,11 +317,11 @@ class database {
 		foreach ($query_split as $command_line) {
 			$command_line = trim( $command_line );
 			if ($command_line != '') {
-				$this->_cursor = mysql_query( $command_line, $this->_resource );
+				$this->_cursor = mysqli_query( $this->_resource, $command_line );
 				if (!$this->_cursor) {
 					$error = 1;
-					$this->_errorNum .= mysql_errno( $this->_resource ) . ' ';
-					$this->_errorMsg .= mysql_error( $this->_resource )." SQL=$command_line <br />";
+					$this->_errorNum .= mysqli_errno( $this->_resource ) . ' ';
+					$this->_errorMsg .= mysqli_error( $this->_resource )." SQL=$command_line <br />";
 					if ($abort_on_error) {
 						return $this->_cursor;
 					}
@@ -366,7 +346,7 @@ class database {
 
 		$buf = "<table cellspacing=\"1\" cellpadding=\"2\" border=\"0\" bgcolor=\"#000000\" align=\"center\">";
 		$buf .= $this->getQuery();
-		while ($row = mysql_fetch_assoc( $cur )) {
+		while ($row = mysqli_fetch_assoc( $cur )) {
 			if ($first) {
 				$buf .= "<tr>";
 				foreach ($row as $k=>$v) {
@@ -382,7 +362,7 @@ class database {
 			$buf .= "</tr>";
 		}
 		$buf .= "</table><br />&nbsp;";
-		mysql_free_result( $cur );
+		mysqli_free_result( $cur );
 
 		$this->_sql = $temp;
 
@@ -392,7 +372,7 @@ class database {
 	* @return int The number of rows returned from the most recent query.
 	*/
 	function getNumRows( $cur=null ) {
-		return mysql_num_rows( $cur ? $cur : $this->_cursor );
+		return mysqli_num_rows( $cur ? $cur : $this->_cursor );
 	}
 
 	/**
@@ -405,10 +385,10 @@ class database {
 			return null;
 		}
 		$ret = null;
-		if ($row = mysql_fetch_row( $cur )) {
+		if ($row = mysqli_fetch_row( $cur )) {
 			$ret = $row[0];
 		}
-		mysql_free_result( $cur );
+		mysqli_free_result( $cur );
 		return $ret;
 	}
 	/**
@@ -419,10 +399,10 @@ class database {
 			return null;
 		}
 		$array = array();
-		while ($row = mysql_fetch_row( $cur )) {
+		while ($row = mysqli_fetch_row( $cur )) {
 			$array[] = $row[$numinarray];
 		}
-		mysql_free_result( $cur );
+		mysqli_free_result( $cur );
 		return $array;
 	}
 	/**
@@ -435,14 +415,14 @@ class database {
 			return null;
 		}
 		$array = array();
-		while ($row = mysql_fetch_assoc( $cur )) {
+		while ($row = mysqli_fetch_assoc( $cur )) {
 			if ($key) {
 				$array[$row[$key]] = $row;
 			} else {
 				$array[] = $row;
 			}
 		}
-		mysql_free_result( $cur );
+		mysqli_free_result( $cur );
 		return $array;
 	}
 	/**
@@ -458,8 +438,8 @@ class database {
 			if (!($cur = $this->query())) {
 				return false;
 			}
-			if ($array = mysql_fetch_assoc( $cur )) {
-				mysql_free_result( $cur );
+			if ($array = mysqli_fetch_assoc( $cur )) {
+				mysqli_free_result( $cur );
 				mosBindArrayToObject( $array, $object, null, null, false );
 				return true;
 			} else {
@@ -467,8 +447,8 @@ class database {
 			}
 		} else {
 			if ($cur = $this->query()) {
-				if ($object = mysql_fetch_object( $cur )) {
-					mysql_free_result( $cur );
+				if ($object = mysqli_fetch_object( $cur )) {
+					mysqli_free_result( $cur );
 					return true;
 				} else {
 					$object = null;
@@ -491,14 +471,14 @@ class database {
 			return null;
 		}
 		$array = array();
-		while ($row = mysql_fetch_object( $cur )) {
+		while ($row = mysqli_fetch_object( $cur )) {
 			if ($key) {
 				$array[$row->$key] = $row;
 			} else {
 				$array[] = $row;
 			}
 		}
-		mysql_free_result( $cur );
+		mysqli_free_result( $cur );
 		return $array;
 	}
 	/**
@@ -509,10 +489,10 @@ class database {
 			return null;
 		}
 		$ret = null;
-		if ($row = mysql_fetch_row( $cur )) {
+		if ($row = mysqli_fetch_row( $cur )) {
 			$ret = $row;
 		}
-		mysql_free_result( $cur );
+		mysqli_free_result( $cur );
 		return $ret;
 	}
 	/**
@@ -527,14 +507,14 @@ class database {
 			return null;
 		}
 		$array = array();
-		while ($row = mysql_fetch_row( $cur )) {
+		while ($row = mysqli_fetch_row( $cur )) {
 			if ($key) {
 				$array[$row[$key]] = $row;
 			} else {
 				$array[] = $row;
 			}
 		}
-		mysql_free_result( $cur );
+		mysqli_free_result( $cur );
 		return $array;
 	}
 	/**
@@ -563,7 +543,7 @@ class database {
 		if (!$this->query()) {
 			return false;
 		}
-		$id = mysql_insert_id( $this->_resource );
+		$id = mysqli_insert_id( $this->_resource );
 		($verbose) && print "id=[$id]<br />\n";
 		if ($keyName && $id) {
 			$object->$keyName = $id;
@@ -614,11 +594,11 @@ class database {
 	}
 
 	function insertid() {
-		return mysql_insert_id( $this->_resource );
+		return mysqli_insert_id( $this->_resource );
 	}
 
 	function getVersion() {
-		return mysql_get_server_info( $this->_resource );
+		return mysqli_get_server_info( $this->_resource );
 	}
 
 	/**
