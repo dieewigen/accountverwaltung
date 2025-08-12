@@ -1,7 +1,8 @@
 <?php
 set_time_limit(240);
-include "../inc/serverdata.inc.php";
+include "../inc/sv.inc.php";
 include "../inc/env.inc.php";
+include "../inc/serverdata.inc.php";
 include "../functions.php";
 include "../inccon.php";
 ?>
