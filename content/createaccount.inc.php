@@ -17,7 +17,7 @@ $vb_ranglistenplatz=$row["wert"]+1;
 
 if($vb_ranglistenplatz>$serverdata[$target][11][0])$hasall=-1;
 //auf betauser testen
-if($serverdata[$target][11][1]==1)
+if(isset($serverdata[$target][11][1]) && $serverdata[$target][11][1]==1)
 {
   $result = mysqli_execute_query(
       $GLOBALS['dbi'],
@@ -176,8 +176,8 @@ if($createok!=1){
 echo '<form action="index.php?command=createaccount&server='.$_REQUEST["server"].'" method="POST">';
 echo '<table border="0" cellpadding="3" cellspacing="0" style="margin: 0px auto;">';
 
-//spielernamen w�hlen, nur bei se und de
-if($gametyp==1 OR $gametyp==2 OR $gametyp==5)
+//spielernamen wählen, nur bei se und de
+if($gametyp==1 || $gametyp==2 || $gametyp==5)
 echo '<tr>
         <td colspan="2" align="center"><b>'.$createaccount_lang['accounterstellen'].'</b></td>
       </tr>
@@ -194,7 +194,7 @@ if($gametyp==1)
 echo ' <tr>
         <td>'.$createaccount_lang['rasse'].':</td>
         <td><select name="rasse">';
-            if ($rasse=='')$rasse=$createaccount_lang['bittewaehlen'];
+            if (!isset($rasse) || $rasse=='')$rasse=$createaccount_lang['bittewaehlen'];
             echo '<option selected>'.$rasse.'</option>';
             echo'
             <option>'.$createaccount_lang['e'].'</option>

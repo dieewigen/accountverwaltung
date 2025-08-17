@@ -104,11 +104,11 @@ color: #FFFFFF;background-color: #000000;} a {color: #f8ae56; text-align: center
 if(intval(date("H"))==0){
 	//aktive user
 	$datum=date("Y-m-d".' 00:00:00', time()-3600*24*7);//innerhalb der letzten 7 Tage
-	$db_daten=mysqli_query($GLOBALS[dbi], "SELECT COUNT(*) AS anzahl FROM ls_user WHERE logins > 0 AND last_login >= '$datum';");
+	$db_daten=mysqli_query($GLOBALS['dbi'], "SELECT COUNT(*) AS anzahl FROM ls_user WHERE logins > 0 AND last_login >= '$datum';");
 	$row = mysqli_fetch_array($db_daten);
 	$anzahl=$row['anzahl'];
 	
-	mysqli_query($GLOBALS[dbi], "INSERT INTO `ls_user_count` ( `server` , `datum` , `anzahl` , `pa_anz` )VALUES (99, NOW(), '$anzahl', 0);");
+	mysqli_query($GLOBALS['dbi'], "INSERT INTO `ls_user_count` ( `server` , `datum` , `anzahl` , `pa_anz` )VALUES (99, NOW(), '$anzahl', 0);");
 	
 }
 
@@ -121,7 +121,7 @@ if(intval(date("H"))==0){
 if(intval(date("H"))==1){
 	//aktive user
 	$datum=date("Y-m-d".' 00:00:00', time()-3600*24*7);
-	mysqli_query($GLOBALS[dbi], "DELETE FROM ls_user WHERE logins=0 AND register < '$datum';");
+	mysqli_query($GLOBALS['dbi'], "DELETE FROM ls_user WHERE logins=0 AND register < '$datum';");
 }
 
 
