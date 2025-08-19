@@ -49,7 +49,11 @@ if ($det_userlevel>$file_userlevel) die ('<font color="#FF0000"><b><br>Du hast n
 
   function printElementHtml( $value, $key ) {
     global $datenstring;
-   $datenstring.=$key. " => ".$value."\n";
+    if (is_array($value)) {
+      $datenstring .= $key . " => " . print_r($value, true) . "\n";
+    } else {
+      $datenstring .= $key . " => " . $value . "\n";
+    }
    //echo $key . " => ";
    //print_r( $value );
    //echo "<br>";

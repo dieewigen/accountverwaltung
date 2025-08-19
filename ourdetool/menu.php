@@ -22,6 +22,8 @@
 	<a href="multi.php?stat2" target="Hauptframe">Multi-IP o. gesperrt</a><br><br>
 
 	<a href="seitenaufrufe.php" target="Hauptframe">Seitenaufrufe</a><br>
+
+	<a href="patchnotes_editor.php" target="Hauptframe">Patch Notes Editor</a><br>
 </div>
 </body>
 </html>

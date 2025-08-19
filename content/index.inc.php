@@ -79,7 +79,8 @@ $ums_language = $_SESSION["ums_language"];
 
 include "content/de/lang/1_index.lang.php";
 
-//cookie f�r grafikpack
+/*
+//cookie für grafikpack
 if (isset($_REQUEST["nogp"])) {
     $time = time() + 32000000;
     setcookie("cnogp", 1, $time);
@@ -89,7 +90,7 @@ if (!isset($_REQUEST["nogp"]) and (isset($_POST["loginname"]) or isset($_POST["p
     setcookie("cnogp", "", 0);
 }
 
-//cookie f�r mobilversion
+//cookie für mobilversion
 if (isset($_REQUEST["mobi"])) {
     $time = time() + 32000000;
     setcookie("cmobi", 1, $time);
@@ -98,6 +99,7 @@ if (isset($_REQUEST["mobi"])) {
 if (!isset($_REQUEST["mobi"]) and (isset($_POST["loginname"]) or isset($_POST["pass"]))) {
     setcookie("cmobi", "", 0);
 }
+*/
 ?>
 <!DOCTYPE HTML>
 <html>
@@ -122,8 +124,8 @@ if ("serviceWorker" in navigator) {
 <link rel="apple-touch-icon" sizes="180x180" href="/img/icon-180x180.png" />
 <link rel="icon" sizes="192x192" href="/img/icon-192x192.png">
 
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<META http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
 <META Name="keywords" Content="<?php echo $index_lang['keywords']?>">
 <META Name="description" Content="<?php echo $index_lang['description']?>">
 <meta http-equiv="pragma" content="no-cache">
@@ -179,7 +181,10 @@ window.location.href = "index.php";
         include "content/support.inc.php";
     } elseif ($_REQUEST["command"] == "de_kb" && isset($GLOBALS['env_enable_de_kb_db']) && $GLOBALS['env_enable_de_kb_db'] == 1) {
         include "content/de_kb.inc.php";
+    } elseif ($_REQUEST["command"] == "patchnotes") {
+        include "content/patchnotes.inc.php";
     }
+
 } else {	//man ist nicht eingeloggt
     $urlparts = explode('/', $_SERVER["REQUEST_URI"]);
     $page = $urlparts[1];
@@ -190,7 +195,11 @@ window.location.href = "index.php";
     if (isset($_REQUEST["command"]) && $_REQUEST["command"] == "logout") {
         //include "content/register.inc.php";
         session_destroy();
-        header("Location: index.php?command=login");
+        echo '
+        <script>
+        window.location.href = "index.php?command=login";
+        </script>';        
+
     } elseif (isset($_REQUEST["command"]) && $_REQUEST["command"] == "register") {
         include "content/register.inc.php";
     } elseif (isset($_REQUEST["command"]) && $_REQUEST["command"] == "registered") {
