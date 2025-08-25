@@ -1,10 +1,10 @@
 -- phpMyAdmin SQL Dump
--- version 6.0.0-dev+20250312.09988faae1
+-- version 6.0.0-dev+20250711.a11cc9efbb
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Erstellungszeit: 03. Jul 2025 um 18:19
--- Server-Version: 11.5.2-MariaDB-log
+-- Erstellungszeit: 19. Aug 2025 um 17:15
+-- Server-Version: 11.8.2-MariaDB-log
 -- PHP-Version: 8.4.5
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
@@ -14,6 +14,38 @@ SET time_zone = "+00:00";
 --
 -- Datenbank: `loginsystem_export`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `de_chat_ignore`
+--
+
+CREATE TABLE `de_chat_ignore` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `owner_id` int(10) UNSIGNED NOT NULL,
+  `owner_id_ignore` int(10) UNSIGNED NOT NULL,
+  `score` mediumint(8) UNSIGNED NOT NULL,
+  `ignore_until` bigint(20) UNSIGNED NOT NULL,
+  `spielername` varchar(20) NOT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `de_chat_msg`
+--
+
+CREATE TABLE `de_chat_msg` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `channel` mediumint(8) UNSIGNED NOT NULL DEFAULT 0,
+  `channeltyp` tinyint(3) UNSIGNED NOT NULL,
+  `server_tag` varchar(5) NOT NULL,
+  `spielername` varchar(20) NOT NULL DEFAULT 'anonymous',
+  `message` mediumtext NOT NULL,
+  `timestamp` int(10) UNSIGNED NOT NULL DEFAULT 0,
+  `owner_id` int(10) UNSIGNED NOT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -48,6 +80,31 @@ CREATE TABLE `ls_de_kb` (
 -- --------------------------------------------------------
 
 --
+-- Tabellenstruktur für Tabelle `ls_patchnotes_posts`
+--
+
+CREATE TABLE `ls_patchnotes_posts` (
+  `postid` int(11) UNSIGNED NOT NULL,
+  `threadid` int(11) UNSIGNED NOT NULL DEFAULT 0,
+  `posttime` int(11) UNSIGNED NOT NULL DEFAULT 0,
+  `message` longtext NOT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `ls_patchnotes_threads`
+--
+
+CREATE TABLE `ls_patchnotes_threads` (
+  `threadid` int(11) UNSIGNED NOT NULL,
+  `topic` varchar(250) NOT NULL DEFAULT '',
+  `lastposttime` int(11) UNSIGNED NOT NULL DEFAULT 0
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Tabellenstruktur für Tabelle `ls_tickets`
 --
 
@@ -77,6 +134,17 @@ CREATE TABLE `ls_tickets_posts` (
 -- --------------------------------------------------------
 
 --
+-- Tabellenstruktur für Tabelle `ls_title`
+--
+
+CREATE TABLE `ls_title` (
+  `title_id` mediumint(9) NOT NULL,
+  `title` varchar(50) NOT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Tabellenstruktur für Tabelle `ls_user`
 --
 
@@ -91,7 +159,7 @@ CREATE TABLE `ls_user` (
   `last_login` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
   `logins` smallint(5) UNSIGNED NOT NULL DEFAULT 0,
   `acc_status` tinyint(1) UNSIGNED NOT NULL DEFAULT 0,
-  `last_ip` varchar(15) NOT NULL DEFAULT '',
+  `last_ip` varchar(40) NOT NULL,
   `credits` int(11) DEFAULT 0,
   `patime` int(10) UNSIGNED NOT NULL DEFAULT 0,
   `spielername` varchar(20) NOT NULL DEFAULT '',
@@ -158,9 +226,35 @@ CREATE TABLE `ls_user_log` (
   `getpost` varchar(4096) NOT NULL
 ) ENGINE=MEMORY DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `ls_user_title`
+--
+
+CREATE TABLE `ls_user_title` (
+  `user_id` mediumint(9) NOT NULL,
+  `title_id` mediumint(9) NOT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 --
 -- Indizes der exportierten Tabellen
 --
+
+--
+-- Indizes für die Tabelle `de_chat_ignore`
+--
+ALTER TABLE `de_chat_ignore`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `owner_id` (`owner_id`);
+
+--
+-- Indizes für die Tabelle `de_chat_msg`
+--
+ALTER TABLE `de_chat_msg`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `channel` (`channel`),
+  ADD KEY `timestamp` (`timestamp`);
 
 --
 -- Indizes für die Tabelle `de_newsletter`
@@ -175,6 +269,23 @@ ALTER TABLE `ls_de_kb`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indizes für die Tabelle `ls_patchnotes_posts`
+--
+ALTER TABLE `ls_patchnotes_posts`
+  ADD PRIMARY KEY (`postid`),
+  ADD KEY `threadid` (`threadid`),
+  ADD KEY `threadid_2` (`threadid`),
+  ADD KEY `visible` (`posttime`);
+
+--
+-- Indizes für die Tabelle `ls_patchnotes_threads`
+--
+ALTER TABLE `ls_patchnotes_threads`
+  ADD PRIMARY KEY (`threadid`),
+  ADD KEY `boardid` (`lastposttime`),
+  ADD KEY `visible` (`lastposttime`);
+
+--
 -- Indizes für die Tabelle `ls_tickets`
 --
 ALTER TABLE `ls_tickets`
@@ -185,6 +296,13 @@ ALTER TABLE `ls_tickets`
 --
 ALTER TABLE `ls_tickets_posts`
   ADD PRIMARY KEY (`ticket_id`,`created`);
+
+--
+-- Indizes für die Tabelle `ls_title`
+--
+ALTER TABLE `ls_title`
+  ADD PRIMARY KEY (`title_id`),
+  ADD KEY `title_id` (`title_id`);
 
 --
 -- Indizes für die Tabelle `ls_user`
@@ -208,8 +326,26 @@ ALTER TABLE `ls_user_log`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indizes für die Tabelle `ls_user_title`
+--
+ALTER TABLE `ls_user_title`
+  ADD KEY `user_id` (`user_id`);
+
+--
 -- AUTO_INCREMENT für exportierte Tabellen
 --
+
+--
+-- AUTO_INCREMENT für Tabelle `de_chat_ignore`
+--
+ALTER TABLE `de_chat_ignore`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT für Tabelle `de_chat_msg`
+--
+ALTER TABLE `de_chat_msg`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT für Tabelle `ls_de_kb`
@@ -222,6 +358,12 @@ ALTER TABLE `ls_de_kb`
 --
 ALTER TABLE `ls_tickets`
   MODIFY `id` mediumint(8) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT für Tabelle `ls_title`
+--
+ALTER TABLE `ls_title`
+  MODIFY `title_id` mediumint(9) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT für Tabelle `ls_user`

@@ -113,14 +113,7 @@ if ($uid>0)
   echo '<tr><td>';
 
     echo '<table border="1" cellpadding="0" cellspacing="1">';
-      echo '<tr>';
-      echo '<td width="100" align="center">Kooperation</td>';
-      $coop='keine';
-      if($row[cooperation]==1)$coop='<font color="#0000FF"><b>BIGPOINT-DE</b></font>';
-      if($row[cooperation]==2)$coop='<font color="#0000FF"><b>KWICK-DE</b></font>';
-      echo '<td width="200" align="center">'.$row[cooperation].' - '.$coop.'</td>';
-      echo '</tr>';
-    
+   
       echo '<tr>';
       echo '<td width="100" align="center">Account ID</td>';
       echo '<td align="center">'.$uid.' (<a href="info.php?observationgo=1&uid='.$uid.'">beobachten</a>)</td>';
