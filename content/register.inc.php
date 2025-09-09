@@ -216,7 +216,7 @@ if ($agb == "1") {
     echo "checked";
 }
 echo ' name="agb" value="1">'.$newreg_lang['agb1'].' 
-	<a href="https://portal.die-ewigen.com/agb.php" target="_blank">'.$newreg_lang['agb2'].'</a> und die <a href="https://portal.die-ewigen.com/datenschutz.php" target="_blank">Datenschutzerkl&auml;rung. Ich bin 16 Jahre oder &auml;lter, bzw. habe die Erlaubnis meiner/meines Erziehungsberechtigten.</a>
+	<a href="'.$GLOBALS['env_url_datenschutz'].'" target="_blank">'.$newreg_lang['agb2'].'</a> und die <a href="'.$GLOBALS['env_url_datenschutz'].'" target="_blank">Datenschutzerkl&auml;rung. Ich bin 16 Jahre oder &auml;lter, bzw. habe die Erlaubnis meiner/meines Erziehungsberechtigten.</a>
 </div>';
 
 echo '<div class="mt15"></div>';

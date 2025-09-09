@@ -20,6 +20,8 @@ $GLOBALS['env_enable_forum_connect']=0;
 $GLOBALS['env_url_portal']='';
 $GLOBALS['env_url_impressum']='';
 $GLOBALS['env_url_datenschutz']='';
+$GLOBALS['env_url_agb']='';
+
 //Accountverwaltung
 $GLOBALS['env_db_loginsystem_host']='';
 $GLOBALS['env_db_loginsystem_user']='';
