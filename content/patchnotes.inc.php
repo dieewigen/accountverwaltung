@@ -104,7 +104,7 @@ if (isset($_REQUEST['search']) && !empty(trim($_REQUEST['search']))) {
         // Posts des Threads laden
         $posts_query = mysqli_execute_query(
             $GLOBALS['dbi'],
-            "SELECT * FROM ls_patchnotes_posts WHERE threadid = ? ORDER BY posttime ASC",
+            "SELECT * FROM ls_patchnotes_posts WHERE threadid = ? ORDER BY posttime DESC",
             [$threadid]
         );
         
