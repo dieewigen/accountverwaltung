@@ -289,7 +289,7 @@ for ($i=0;$i<=$sindex;$i++){
 
 		break;
 			*/
-		default;
+		default:
 			$spielerinfos='Error: SZ02';
 		break;
 	}
