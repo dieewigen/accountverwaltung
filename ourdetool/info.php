@@ -37,12 +37,8 @@ if ($uid > 0 && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
     mysqli_execute_query(
         $GLOBALS['dbi'],
-        "UPDATE ls_user SET kommentar = ?, loginname = ?, reg_mail = ?, spielername = ?, vorname = ?, nachname = ?, strasse = ?, plz = ?, ort = ?, land = ?, telefon = ? WHERE user_id = ?",
-        [
-            req_str('kommentartext'), req_str('loginname'), req_str('email'), req_str('spielername'),
-            req_str('vorname'), req_str('nachname'), req_str('strasse'), req_str('plz'),
-            req_str('ort'), req_str('land'), req_str('telefon'), $uid,
-        ]
+        "UPDATE ls_user SET kommentar = ?, loginname = ?, reg_mail = ?, spielername = ? WHERE user_id = ?",
+        [req_str('kommentartext'), req_str('loginname'), req_str('email'), req_str('spielername'), $uid]
     );
     $flash = ($flash !== '' ? $flash . ' ' : '') . 'Daten gespeichert.';
 }
@@ -63,21 +59,9 @@ if ($uid > 0) {
 }
 
 if ($row) {
-    $status = match ((int)$row["acc_status"]) {
-        0 => 'Inaktiv',
-        1 => 'Aktiv',
-        2 => 'Gesperrt',
-        3 => 'Urlaub',
-        default => 'Status ' . (int)$row["acc_status"],
-    };
-    $geschlecht = ((int)$row["geschlecht"] === 1) ? 'm&auml;nnlich' : 'weiblich';
-
     echo '<form action="info.php?uid=' . $uid . '" method="post">';
     echo csrf_field();
 
-    echo '<div class="cards">';
-
-    // linke Karte: Accountdaten
     echo '<div class="card"><h2>Account</h2>';
     echo '<table>';
     echo '<tr><th>Account ID</th><td>' . $uid
@@ -93,24 +77,6 @@ if ($row) {
     echo '<tr><th>Logins</th><td>' . (int)$row["logins"] . '</td></tr>';
     echo '<tr><th>Passwort</th><td>' . htmlspecialchars(modpass((string)$row["pass"])) . '</td></tr>';
     echo '</table></div>';
-
-    // rechte Karte: persönliche Daten
-    echo '<div class="card"><h2>Pers&ouml;nliche Daten</h2>';
-    echo '<table>';
-    echo '<tr><th>Vorname</th><td><input type="text" name="vorname" value="' . htmlspecialchars((string)$row["vorname"]) . '"></td></tr>';
-    echo '<tr><th>Nachname</th><td><input type="text" name="nachname" value="' . htmlspecialchars((string)$row["nachname"]) . '"></td></tr>';
-    echo '<tr><th>Strasse</th><td><input type="text" name="strasse" value="' . htmlspecialchars((string)$row["strasse"]) . '"></td></tr>';
-    echo '<tr><th>PLZ</th><td><input type="text" name="plz" value="' . htmlspecialchars((string)$row["plz"]) . '"></td></tr>';
-    echo '<tr><th>Ort</th><td><input type="text" name="ort" value="' . htmlspecialchars((string)$row["ort"]) . '"></td></tr>';
-    echo '<tr><th>Land</th><td><input type="text" name="land" value="' . htmlspecialchars((string)$row["land"]) . '"></td></tr>';
-    echo '<tr><th>Telefon</th><td><input type="text" name="telefon" value="' . htmlspecialchars((string)$row["telefon"]) . '"></td></tr>';
-    echo '<tr><th>Geburtsdatum</th><td>' . htmlspecialchars($row["tag"] . '-' . $row["monat"] . '-' . $row["jahr"]) . '</td></tr>';
-    echo '<tr><th>Geschlecht</th><td>' . $geschlecht . '</td></tr>';
-    echo '<tr><th>Status</th><td>' . (int)$row["acc_status"] . ' = ' . $status . '</td></tr>';
-    echo '<tr><th>Forum (ID / Nick)</th><td>' . (int)$row['forum_user_id'] . ' / ' . htmlspecialchars((string)$row['forum_nick']) . '</td></tr>';
-    echo '</table></div>';
-
-    echo '</div>'; // .cards
 
     echo '<div class="card"><h2>Spielerstatus ver&auml;ndern</h2>';
     echo '<input type="submit" name="stataktiv" value="Aktiv" style="width:130px;"> ';
