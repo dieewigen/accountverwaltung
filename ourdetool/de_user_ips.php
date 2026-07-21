@@ -1,47 +1,38 @@
-<html>
-<head>
-<title>IP-Adressen</title>
-<?php include "cssinclude.php";?>
-</head>
-<body>
-<div align="center">
 <?php
-include "../inc/sv.inc.php";
-//include "../inccon.php";
-include "det_userdata.inc.php";
+include_once "../inc/sv.inc.php";
+include_once "../inccon.php";
+include_once "det_userdata.inc.php";
+include_once "log_dbconnect.php";
 
-include "log_dbconnect.php";
+$uid = req_int('uid');
 
-$uid=intval($_REQUEST["uid"]);
+$page_title = 'IP-Adressen';
+$active_nav = 'usersearch';
+include_once "inc.layout.top.php";
+include_once "inc.usertoolbar.php";
 
-//alle ips laden und ausgeben
-
-echo 'Hier werden nur die IP-�nderungen und nicht die kompletten Zugriffe angezeigt.<br>';
+echo '<p class="dim">Hier werden nur die IP-&Auml;nderungen und nicht die kompletten Zugriffe angezeigt.</p>';
 
 echo '
-<table border="0">
-<colgroup>
-<col width="150">
-<col width="150">
-</colgroup>
+<table>
 <tr>
-<td class="cell1" align="center"><b>IP-Adresse</b></td>
-<td class="cell1" align="center"><b>Uhrzeit</b></td>
+<th>IP-Adresse</th>
+<th>Uhrzeit</th>
 </tr>';
 
-//echo "SELECT time, ip FROM gameserverlogdata WHERE serverid='$sv_servid' AND userid='$uid' ORDER BY time DESC";
-$ipadresse='127.0.0.1';
-$result = mysqli_execute_query($GLOBALS['logdbi'], "SELECT time, ip FROM gameserverlogdata WHERE serverid = ? AND userid = ? ORDER BY time DESC", [$sv_servid, $uid]);
-while($row = mysqli_fetch_array($result))
-{
-  if($ipadresse!=$row["ip"])
-  {
-    echo '<tr align="center"><td>'.$row["ip"].'</td><td>'.$row["time"].'</td></tr> ';
-    $ipadresse=$row["ip"];
-  }
+//alle ips laden, nur Wechsel ausgeben
+$ipadresse = '127.0.0.1';
+$result = mysqli_execute_query(
+    $GLOBALS['dbi_log'],
+    "SELECT time, ip FROM gameserverlogdata WHERE serverid = ? AND userid = ? ORDER BY time DESC",
+    [$sv_servid, $uid]
+);
+while ($row = mysqli_fetch_array($result)) {
+    if ($ipadresse != $row["ip"]) {
+        echo '<tr><td>' . htmlspecialchars((string)$row["ip"]) . '</td><td>' . htmlspecialchars((string)$row["time"]) . '</td></tr> ';
+        $ipadresse = $row["ip"];
+    }
 }
 echo '</table>';
-?>
-</div>
-</body>
-</html> 
+
+include_once "inc.layout.bottom.php";

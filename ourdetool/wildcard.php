@@ -1,118 +1,114 @@
-<?PHP
- include "../inccon.php";
+<?php
+include_once "../inccon.php";
+include_once "det_userdata.inc.php";
 
- function getmicrotime(){
-  list($usec, $sec) = explode(" ",microtime());
-  return ((float)$usec + (float)$sec);
- }
+// Suchstring; Präfixzeichen bestimmt das Suchfeld, de_user_search.php
+// übersetzt vorab %->$ (Wildcard-Logik unverändert beibehalten)
+$sstr = req_str('sstr');
 
- $time_start = getmicrotime();
-?>
+$page_title = 'Wildcard-Suche';
+$active_nav = 'usersearch';
+include_once "inc.layout.top.php";
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<html>
-<head>
-<title>Suche</title>
-<?php include "cssinclude.php";?>
-<style >
- body { scrollbar-face-color: #000000;scrollbar-shadow-color: #000000;scrollbar-highlight-color: #333333; scrollbar-3dlight-color: #8CA0B4;scrollbar-darkshadow-color: #333333;scrollbar-track-color: #000000;
-  scrollbar-arrow-color: #8CA0B4; padding: 0px; color: #3399FF; margin-left: 0px; margin-top: 0px; margin-right: 0px; margin-bottom: 0px;
-  font-family: helvetica, arial,geneva, sans-serif;  font-size: 10pt;}
- table { border: 1px solid #00366C; }
- td { font-family: helvetica, arial, geneva, sans-serif; font-size: 10pt; white-space: nowrap; border: 1px solid #00366C; }
- td.r { color: #ff0000; }
- a { color: #3399ff; text-decoration: underline }
- a:hover { color: #3399ff; text-decoration: none }
-</style>
+echo '<table>';
+echo '<tr>';
+echo '<th>UserID</th>';
+echo '<th>Suche</th>';
+echo '</tr>';
 
-</head>
-<body>
+$UCount = 0;
+if ($sstr != '') {
+    switch ($sstr[0]) {
+        case '-': //nic
+            $sstr = str_replace($sstr[0] . $sstr[1], $sstr[1], $sstr);
+            $result = mysqli_execute_query(
+                $GLOBALS['dbi'],
+                "SELECT user_id, nic FROM ls_user WHERE nic LIKE ?",
+                ['%' . $sstr . '%']
+            );
 
-<?
-  echo '<table border="0" cellpadding="2" cellspacing="0">';
-  echo '<tr>';
-  echo '<td>UserID</td>';
-  echo '<td>Suche</td>';
-  echo '</tr>';
+            while ($UData = mysqli_fetch_array($result, MYSQLI_ASSOC)) {
+                echo '<tr><td><a href="info.php?uid=' . (int)$UData["user_id"] . '" target="_blank" rel="noopener">' . (int)$UData["user_id"] . '</a></td>';
+                echo '<td>' . htmlspecialchars((string)$UData["nic"]) . '</td></tr>';
+                $UCount++;
+            }
 
-  $UCount = 0;
-  if ($sstr!='')
-  switch($sstr[0]){
-    case '-': //nic
-      $sstr = str_replace($sstr[0].$sstr[1],$sstr[1],$sstr);
-      $result = mysqli_execute_query($GLOBALS['dbi'], "SELECT user_id, nic FROM ls_user WHERE nic LIKE ?", ["%".$sstr."%"]);
+            break;
+        case '*': //spielername
+            $sstr = str_replace($sstr[0] . $sstr[1], $sstr[1], $sstr);
+            $result = mysqli_execute_query(
+                $GLOBALS['dbi'],
+                "SELECT user_id, spielername FROM ls_user WHERE spielername LIKE ?",
+                ['%' . $sstr . '%']
+            );
 
-      while($UData = mysqli_fetch_array($result)) {
-       echo '<tr><td><a href="idinfo.php?UID='.$UData["user_id"].'" target="_blank">'.$UData["user_id"].'</a></td>';
-       echo '<td>'.$UData["nic"].'</td></tr>';
-       $UCount++;
-      }
+            while ($UData = mysqli_fetch_array($result, MYSQLI_ASSOC)) {
+                echo '<tr><td><a href="info.php?uid=' . (int)$UData["user_id"] . '" target="_blank" rel="noopener">' . (int)$UData["user_id"] . '</a></td>';
+                echo '<td>' . htmlspecialchars((string)$UData["spielername"]) . '</td></tr>';
+                $UCount++;
+            }
 
-      break;
-    case '*': //spielername
-      $sstr = str_replace($sstr[0].$sstr[1],$sstr[1],$sstr);
-      $result = mysqli_execute_query($GLOBALS['dbi'], "SELECT user_id, spielername FROM ls_user WHERE spielername LIKE ?", ["%".$sstr."%"]);
+            break;
+        case '$': //email-adresse
+            $sstr = str_replace($sstr[0] . $sstr[1], $sstr[1], $sstr);
+            $result = mysqli_execute_query(
+                $GLOBALS['dbi'],
+                "SELECT user_id, reg_mail FROM ls_user WHERE reg_mail LIKE ?",
+                ['%' . $sstr . '%']
+            );
 
-      while($UData = mysqli_fetch_array($result)) {
-       echo '<tr><td><a href="idinfo.php?UID='.$UData["user_id"].'" target="_blank">'.$UData["user_id"].'</a></td>';
-       echo '<td>'.$UData["spielername"].'</td></tr>';
-       $UCount++;
-      }
+            while ($UData = mysqli_fetch_array($result, MYSQLI_ASSOC)) {
+                echo '<tr><td><a href="info.php?uid=' . (int)$UData["user_id"] . '" target="_blank" rel="noopener">' . (int)$UData["user_id"] . '</a></td>';
+                echo '<td>' . htmlspecialchars((string)$UData["reg_mail"]) . '</td></tr>';
+                $UCount++;
+            }
 
-      break;
-    case '$': //email-adresse
-      $sstr = str_replace($sstr[0].$sstr[1],$sstr[1],$sstr);
-      $result = mysqli_execute_query($GLOBALS['dbi'], "SELECT user_id, reg_mail FROM ls_user WHERE reg_mail LIKE ?", ["%".$sstr."%"]);
+            break;
+        case '~': //IP
+            $sstr = str_replace($sstr[0] . $sstr[1], $sstr[1], $sstr);
+            $result = mysqli_execute_query(
+                $GLOBALS['dbi'],
+                "SELECT user_id, last_ip FROM ls_user WHERE last_ip LIKE ? ORDER BY last_ip",
+                ['%' . $sstr . '%']
+            );
+            while ($UData = mysqli_fetch_array($result, MYSQLI_ASSOC)) {
+                echo '<tr><td><a href="info.php?uid=' . (int)$UData["user_id"] . '" target="_blank" rel="noopener">' . (int)$UData["user_id"] . '</a></td>';
+                echo '<td>' . htmlspecialchars((string)$UData["last_ip"]) . '</td></tr>';
+                $UCount++;
+            }
 
-      while($UData = mysqli_fetch_array($result)) {
-       echo '<tr><td><a href="idinfo.php?UID='.$UData["user_id"].'" target="_blank">'.$UData["user_id"].'</a></td>';
-       echo '<td>'.$UData["reg_mail"].'</td></tr>';
-       $UCount++;
-      }
+            break;
+        case '|': //Vor-/Nachname
+            $sstr = str_replace($sstr[0] . $sstr[1], $sstr[1], $sstr);
+            $result = mysqli_execute_query(
+                $GLOBALS['dbi'],
+                "SELECT user_id, vorname, nachname FROM ls_user WHERE vorname LIKE ? OR nachname LIKE ?",
+                ['%' . $sstr . '%', '%' . $sstr . '%']
+            );
+            while ($UData = mysqli_fetch_array($result, MYSQLI_ASSOC)) {
+                echo '<tr><td><a href="info.php?uid=' . (int)$UData["user_id"] . '" target="_blank" rel="noopener">' . (int)$UData["user_id"] . '</a></td>';
+                echo '<td>' . htmlspecialchars((string)$UData["vorname"]) . ' ' . htmlspecialchars((string)$UData["nachname"]) . '</td></tr>';
+                $UCount++;
+            }
+            break;
+        case 'ö': //Ort
+            $sstr = str_replace($sstr[0] . $sstr[1], $sstr[1], $sstr);
+            $result = mysqli_execute_query(
+                $GLOBALS['dbi'],
+                "SELECT user_id, ort FROM ls_user WHERE ort LIKE ?",
+                ['%' . $sstr . '%']
+            );
+            while ($UData = mysqli_fetch_array($result, MYSQLI_ASSOC)) {
+                echo '<tr><td><a href="info.php?uid=' . (int)$UData["user_id"] . '" target="_blank" rel="noopener">' . (int)$UData["user_id"] . '</a></td>';
+                echo '<td>' . htmlspecialchars((string)$UData["ort"]) . '</td></tr>';
+                $UCount++;
+            }
+            break;
+        default:
+            break;
+    }//switch sstr ende
+}
 
-      break;
+echo '</table><br>' . $UCount . ' User gefunden<br>';
 
-    case '~': //IP
-      $sstr = str_replace($sstr[0].$sstr[1],$sstr[1],$sstr);
-      $result = mysqli_execute_query($GLOBALS['dbi'], "SELECT user_id, last_ip FROM ls_user WHERE last_ip LIKE ? ORDER BY last_ip", ["%".$sstr."%"]);
-      while($UData = mysqli_fetch_array($result)) {
-       echo '<tr><td><a href="idinfo.php?UID='.$UData["user_id"].'" target="_blank">'.$UData["user_id"].'</a></td>';
-       echo '<td>'.$UData["last_ip"].'</td></tr>';
-       $UCount++;
-      }
-
-      break;
-
-    case '|': //Vor-/Nachname
-      $sstr = str_replace($sstr[0].$sstr[1],$sstr[1],$sstr);
-      $result = mysqli_execute_query($GLOBALS['dbi'], "SELECT user_id, vorname, nachname FROM ls_user WHERE vorname LIKE ? OR nachname LIKE ?", ["%".$sstr."%", "%".$sstr."%"]);
-      while($UData = mysqli_fetch_array($result)) {
-       echo '<tr><td><a href="idinfo.php?UID='.$UData["user_id"].'" target="_blank">'.$UData["user_id"].'</a></td>';
-       echo '<td>'.$UData["vorname"].' '.$UData["nachname"].'</td></tr>';
-       $UCount++;
-      }
-	break;
-    case 'ö': //Ort
-      $sstr = str_replace($sstr[0].$sstr[1],$sstr[1],$sstr);
-      $result = mysqli_execute_query($GLOBALS['dbi'], "SELECT user_id, ort FROM ls_user WHERE ort LIKE ?", ["%".$sstr."%"]);
-      while($UData = mysqli_fetch_array($result)) {
-       echo '<tr><td><a href="idinfo.php?UID='.$UData["user_id"].'" target="_blank">'.$UData["user_id"].'</a></td>';
-       echo '<td>'.$UData["ort"].'</td></tr>';
-       $UCount++;
-      }
-
-    default:
-      break;
-  }//switch sstr ende
-
-  echo '</table><br>'.$UCount.' User gefunden<br>';
-
-  $time_end = getmicrotime();
-  $ltime = number_format($time_end - $time_start,2,".","");
-?>
-
- <br>
- Seite in <? echo $ltime; ?> Sekunden erstellt.
-
-</body>
-</html>
+include_once "inc.layout.bottom.php";

@@ -1,172 +1,124 @@
 <?php
 include_once "../inc/sv.inc.php";
-include "../inccon.php";
-//include "../outputlib.php";
+include_once "../inccon.php";
+include_once "det_userdata.inc.php";
 
-$time=time();
-?>
-<html>
-<head>
-<title>Tickets</title>
-<?php include "cssinclude.php";?>
-</head>
-<body>
-<div align="center">
-<?php
+$time = time();
+$ticket_id = req_int('showtid');
 
-include "det_userdata.inc.php";
+$page_title = 'Supporttickets';
+include_once "inc.layout.top.php";
 
-if(isset($_REQUEST['showtid'])){
-	$ticket_id=intval($_REQUEST['showtid']);
-	$sql = "SELECT * FROM ls_tickets WHERE id=?";
-	$db_daten = mysqli_execute_query($GLOBALS['dbi'], $sql, [$ticket_id]);
-	$num = mysqli_num_rows($db_daten);
-	if($num>0){
-		$row = mysqli_fetch_array($db_daten);
-		$user_id=$row['user_id'];
-		//�berpr�fen ob das ticket dem spieler geh�rt
-			//�berpr�fen ob eine antwort eingef�gt werden soll
-			if($_REQUEST['reply']==1)
-			{
-				$messagesql=trim($_REQUEST['nachricht']);
-				//echo 'A: '.$messagesql;
-				$messagesql=htmlspecialchars($messagesql, ENT_COMPAT | ENT_HTML401, 'ISO-8859-1');
-				//echo 'B: '.$messagesql;
-				$messagesql=str_replace('\r\n', '<br>', $messagesql);
+if ($ticket_id > 0) {
+    $db_daten = mysqli_execute_query($GLOBALS['dbi'], "SELECT * FROM ls_tickets WHERE id=?", [$ticket_id]);
+    $ticket = $db_daten ? mysqli_fetch_array($db_daten) : null;
 
-				$messagesql=$messagesql;
-				//echo 'C: '.$messagesql;
-				
-				//nachricht hinterlegen
-				$sql = "INSERT INTO ls_tickets_posts SET ticket_id=?, created=?, poster=?, message=?";
-				mysqli_execute_query($GLOBALS['dbi'], $sql, [$ticket_id, $time, $det_email, $messagesql]);
+    if ($ticket) {
+        $user_id = (int)$ticket['user_id'];
 
-				//ticketstatus anpassen
-				$sql = "UPDATE ls_tickets SET modified=?, status=?, supporter=? WHERE id=?";
-				mysqli_execute_query($GLOBALS['dbi'], $sql, [$time, 1, $det_email, $ticket_id]);
-			}
+        //überprüfen ob eine antwort eingefügt werden soll
+        if (req_int('reply') === 1 && $_SERVER['REQUEST_METHOD'] === 'POST') {
+            csrf_require();
+            $messagesql = trim(req_str('nachricht'));
+            $messagesql = htmlspecialchars($messagesql);
+            $messagesql = nl2br($messagesql, false);
 
-			if($_REQUEST['close']==1)
-			{
-				//ticketstatus anpassen
-				$sql = "UPDATE ls_tickets SET modified=?, status=?, supporter=? WHERE id=?";
-				mysqli_execute_query($GLOBALS['dbi'], $sql, [$time, 1, $det_email, $ticket_id]);
-				$row['status']=1;
-			}				
+            //nachricht hinterlegen
+            mysqli_execute_query(
+                $GLOBALS['dbi'],
+                "INSERT INTO ls_tickets_posts SET ticket_id=?, created=?, poster=?, message=?",
+                [$ticket_id, $time, $det_email, $messagesql]
+            );
 
-			//nachricht ausgeben
-			if($row['status']==0)$status='Ticket ist offen';else $status='Ticket ist geschlossen';
-			echo '<div style="width: 640px; padding: 5px; background-color: #222222;">'.$row['thema'].' ('.$status.')</div>';
+            //ticketstatus anpassen
+            mysqli_execute_query(
+                $GLOBALS['dbi'],
+                "UPDATE ls_tickets SET modified=?, status=?, supporter=? WHERE id=?",
+                [$time, 1, $det_email, $ticket_id]
+            );
+            $ticket['status'] = 1;
+            echo '<div class="flash flash-ok">Antwort gespeichert, Ticket geschlossen.</div>';
+        }
 
-			//die einzelnen posts
-			$sql = "SELECT * FROM ls_tickets_posts WHERE ticket_id=? ORDER BY created ASC";
-			$db_daten = mysqli_execute_query($GLOBALS['dbi'], $sql, [$ticket_id]);
-			$spielername='';
-			while($row = mysqli_fetch_array($db_daten))
-			{
-				if($spielername=='')$spielername=$row['poster'];
-				//header
-				if($row['poster']==$spielername)
-				{
-					$bgcolor='#444444';
-					echo '<div style="text-align:left; width: 640px; margin-top: 2px; padding: 5px; background-color: '.$bgcolor.';"><a href="http://login.bgam.es/ourdetool/idinfo.php?UID='.$user_id.'">'.$row['poster'].'</a> - '.date("G:i:s d.m.Y", $row['created']).'</div>';
-				}
-				else 
-				{
-					$bgcolor='#446644';
-					echo '<div style="text-align:left; width: 640px; margin-top: 2px; padding: 5px; background-color: '.$bgcolor.';">'.$row['poster'].' - '.date("G:i:s d.m.Y", $row['created']).'</div>';
-				}
+        if (req_int('close') === 1) {
+            csrf_require();
+            //ticketstatus anpassen ohne antwort
+            mysqli_execute_query(
+                $GLOBALS['dbi'],
+                "UPDATE ls_tickets SET modified=?, status=?, supporter=? WHERE id=?",
+                [$time, 1, $det_email, $ticket_id]
+            );
+            $ticket['status'] = 1;
+            echo '<div class="flash flash-ok">Ticket geschlossen.</div>';
+        }
 
-				//body
-				if($row['poster']==$spielername)$bgcolor='#222222';else $bgcolor='#226622';
-				echo '<div style="text-align:left; width: 640px; margin-top: 1px; padding: 5px; background-color: '.$bgcolor.';">'.$row['message'].'</div>';
-			}
+        $status = ((int)$ticket['status'] === 0) ? 'Ticket ist offen' : 'Ticket ist geschlossen';
 
-			//antwortformular
-			echo '<form action="tickets.php?reply=1&showtid='.$ticket_id.'" method="POST">';
-			echo '<br>Nachricht:<br>';
-			echo '<textarea rows="12" name="nachricht" cols="75"></textarea>'; 
+        echo '<div class="ticket-thread">';
+        echo '<div class="ticket-subject">' . htmlspecialchars((string)$ticket['thema']) . ' <span class="dim">(' . $status . ')</span></div>';
 
-			echo '<div align="center"><br><input type="submit" name="bieten" value="Nachricht senden"></div>';
+        //die einzelnen posts (Nachrichten liegen als beim Insert escapetes HTML mit <br> vor)
+        $db_daten = mysqli_execute_query($GLOBALS['dbi'], "SELECT * FROM ls_tickets_posts WHERE ticket_id=? ORDER BY created ASC", [$ticket_id]);
+        $spielername = '';
+        while ($post = mysqli_fetch_array($db_daten)) {
+            if ($spielername == '') {
+                $spielername = $post['poster'];
+            }
+            $is_owner = ($post['poster'] == $spielername);
 
-			echo '</form>';
+            echo '<div class="ticket-post' . ($is_owner ? '' : ' supporter') . '">';
+            echo '<div class="ticket-post-head">';
+            if ($is_owner) {
+                echo '<a href="info.php?uid=' . $user_id . '">' . htmlspecialchars((string)$post['poster']) . '</a>';
+            } else {
+                echo htmlspecialchars((string)$post['poster']);
+            }
+            echo ' &ndash; ' . date("G:i:s d.m.Y", (int)$post['created']) . '</div>';
+            echo '<div class="ticket-post-body">' . $post['message'] . '</div>';
+            echo '</div>';
+        }
+        echo '</div>';
 
-			echo '<br>Das Ticket ben&ouml;tigt keine Antwort: <a href="tickets.php?close=1&showtid='.$ticket_id.'">Ticket schlie&szlig;en</a>';
-	}
+        //antwortformular
+        echo '<form action="tickets.php?reply=1&showtid=' . $ticket_id . '" method="post">';
+        echo csrf_field();
+        echo '<h3>Nachricht</h3>';
+        echo '<textarea rows="12" name="nachricht" cols="75"></textarea><br><br>';
+        echo '<input type="submit" name="bieten" value="Nachricht senden">';
+        echo '</form>';
+
+        echo '<p>Das Ticket ben&ouml;tigt keine Antwort: <a href="' . csrf_url('tickets.php?close=1&showtid=' . $ticket_id) . '" data-confirm="Ticket ' . $ticket_id . ' ohne Antwort schlie&szlig;en?">Ticket schlie&szlig;en</a></p>';
+    } else {
+        echo '<div class="flash flash-warn">Ticket nicht gefunden.</div>';
+    }
+} else {
+    foreach ([['Offene Tickets', 0, ''], ['Beantwortete Tickets', 1, ' LIMIT 50']] as [$ueberschrift, $tstatus, $limit]) {
+        echo '<h2>' . $ueberschrift . '</h2>';
+
+        $db_daten = mysqli_execute_query(
+            $GLOBALS['dbi'],
+            "SELECT t.*, u.spielername FROM ls_tickets t LEFT JOIN ls_user u ON u.user_id = t.user_id WHERE t.status=? ORDER BY t.created DESC" . $limit,
+            [$tstatus]
+        );
+        if (mysqli_num_rows($db_daten) > 0) {
+            echo '<table>';
+            echo '<tr><th>Betreff</th><th>User</th><th>erstellt</th><th>letzte &Auml;nderung</th><th>Supporter</th></tr>';
+
+            while ($row = mysqli_fetch_array($db_daten)) {
+                echo '<tr>';
+                echo '<td><a href="tickets.php?showtid=' . (int)$row['id'] . '">' . htmlspecialchars((string)$row['thema']) . '</a></td>';
+                echo '<td><a href="info.php?uid=' . (int)$row['user_id'] . '">' . htmlspecialchars((string)$row['spielername']) . '</a></td>';
+                echo '<td>' . date("H:i:s d.m.Y", (int)$row['created']) . '</td>';
+                echo '<td>' . date("H:i:s d.m.Y", (int)$row['modified']) . '</td>';
+                echo '<td>' . ($row['supporter'] == '' ? '<span class="dim">noch keiner</span>' : htmlspecialchars((string)$row['supporter'])) . '</td>';
+                echo '</tr>';
+            }
+
+            echo '</table>';
+        } else {
+            echo '<p class="dim">' . ($tstatus === 0 ? 'Es gibt keine offenen Tickets.' : 'Es gibt keine beantworteten Tickets.') . '</p>';
+        }
+    }
 }
-else 
-{
-	echo '<div style="font-size: 20px;">Offene Tickets</div>';
 
-		$sql = "SELECT * FROM ls_tickets WHERE status=0 ORDER BY created DESC";
-		$db_daten = mysqli_execute_query($GLOBALS['dbi'], $sql);
-    	$num = mysqli_num_rows($db_daten);
-    	if($num>0)
-    	{
-    		//kopf
-    		echo '<table width="100%">';
-    		echo '<tr><td>Betreff</td><td>User</td><td>erstellt</td><td>letzte &auml;nderung</td><td>Supporter</td></tr>';
-    	
-    		while($row = mysqli_fetch_array($db_daten))
-    		{
-    			//spielernamen auslesen
-    			$sql = "SELECT * FROM ls_user WHERE user_id=?";
-    			$db_datenx = mysqli_execute_query($GLOBALS['dbi'], $sql, [$row['user_id']]);
-    			$rowx = mysqli_fetch_array($db_datenx);
-    			
-    			echo '<tr>';
-    			echo '<td><a href="tickets.php?showtid='.$row['id'].'">'.$row['thema'].'</a></td>';
-    			echo '<td><a href="idinfo.php?UID='.$row['user_id'].'">'.$rowx['spielername'].'</a></td>';
-    			echo '<td>'.date("H:i:s d.m.Y", $row['created']).'</td>';
-    			echo '<td>'.date("H:i:s d.m.Y", $row['modified']).'</td>';
-    			if($row['supporter']=='')$status='noch keiner';else $status=$row['supporter'];
-    			echo '<td>'.$status.'</td>';
-    		
-    			echo '</tr>';
-    		}
-    	
-    		echo '</table>';
-    	}
-    	else echo 'Es gibt keine offenen Tickets.';
-
-
-echo '<br><hr><br>';
-
-echo '<div style="font-size: 20px;">Beantwortete Tickets</div>';
-
-		$sql = "SELECT * FROM ls_tickets WHERE status=1 ORDER BY created DESC LIMIT 50";
-		$db_daten = mysqli_execute_query($GLOBALS['dbi'], $sql);
-    	$num = mysqli_num_rows($db_daten);
-    	if($num>0)
-    	{
-    		//kopf
-    		echo '<table width="100%">';
-    		echo '<tr><td>Betreff</td><td>Spieler</td><td>erstellt</td><td>letzte &auml;nderung</td><td>Supporter</td></tr>';
-    	
-    		while($row = mysqli_fetch_array($db_daten))
-    		{
-    			//spielernamen auslesen
-    			$sql = "SELECT * FROM ls_user WHERE user_id=?";
-    			$db_datenx = mysqli_execute_query($GLOBALS['dbi'], $sql, [$row['user_id']]);
-    			$rowx = mysqli_fetch_array($db_datenx);
-    			
-    			echo '<tr>';
-    			echo '<td><a href="tickets.php?showtid='.$row['id'].'">'.$row['thema'].'</a></td>';
-    			echo '<td><a href="idinfo.php?UID='.$row['user_id'].'">'.$rowx['spielername'].'</a></td>';
-    			echo '<td>'.date("H:i:s d.m.Y", $row['created']).'</td>';
-    			echo '<td>'.date("H:i:s d.m.Y", $row['modified']).'</td>';
-    			if($row['supporter']=='')$status='noch keiner';else $status=$row['supporter'];
-    			echo '<td>'.$status.'</td>';
-    		
-    			echo '</tr>';
-    		}
-    	
-    		echo '</table>';
-    	}
-    	else echo 'Es gibt keine beantworteten Tickets.';
-
-}
-?>
-</div>
-</body>
-</html>
+include_once "inc.layout.bottom.php";

@@ -1,4 +1,6 @@
 .user.ini
 ourdetool/user/
+ourdetool/logs/
+ourdetool/.ht_csrf_secret
 loginsystem.code-workspace
 inc/env.inc.php

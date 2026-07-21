@@ -1,162 +1,177 @@
 <?php
 /**
- * Description of getAjax
+ * AJAX-Endpoint für de_user_logviewer.php – liefert HTML-Fragmente,
+ * daher KEIN Layout. Ausgabeformat unverändert.
  *
- * @author Rainer Zerbe - rz.php-projects@i-it-s.de
- * @copyright © Rainer Zerbe - 22.03.2009
+ * @author Rainer Zerbe - rz.php-projects@i-it-s.de (Original 2009)
  *
+ * Portiert auf mysqli mit Prepared Statements; die frühere
+ * dbExtend/cfg-Klassenschicht (logviewer/class/) wurde entfernt.
  */
-require 'det_userdata.inc.php';
-require '../inc/sv.inc.php';
+include_once "../inccon.php";
+include_once "det_userdata.inc.php";
+include_once "log_dbconnect.php";
 
-define('DIRECT',1);
-require_once 'logviewer/class/cfg.php';
-require_once 'logviewer/class/database.php';
-require_once 'logviewer/class/dbExtend.php';
+/** Alle Zeilen einer Abfrage als Array von Assoziativ-Arrays, optional nach Spalte indiziert. */
+function logdb_all(string $sql, array $params = [], ?string $index = null): array
+{
+    $result = mysqli_execute_query($GLOBALS['dbi_log'], $sql, $params);
+    if (!$result) {
+        echo '<div style="color: red;">SQL-Fehler: ' . htmlspecialchars(mysqli_error($GLOBALS['dbi_log'])) . '</div>';
+        return [];
+    }
+    $data = [];
+    while ($row = mysqli_fetch_assoc($result)) {
+        if ($index !== null && isset($row[$index])) {
+            $data[$row[$index]] = $row;
+        } else {
+            $data[] = $row;
+        }
+    }
+    return $data;
+}
 
-if($_GET['job'] == 'loadTopGenerator') {
-    $d = dbExtend::getInstance()->get('select serverid, userid, count(userid) as c from gameserverlogdata where file in("imagegenerator") group by serverid, userid order by c desc limit 20;');
+$job = req_str('job');
+$ajax_uid = req_int('uid');
+$ajax_sid = req_int('sid');
+
+// Top-Übersichten: gleiche Abfrage für drei verschiedene Dateien
+$top_jobs = [
+    'loadTopGenerator' => 'imagegenerator',
+    'loadTopSecstat'   => 'secstatus',
+    'loadTopSysnews'   => 'sysnews',
+];
+if (isset($top_jobs[$job])) {
+    $d = logdb_all(
+        "SELECT serverid, userid, COUNT(userid) AS c FROM gameserverlogdata WHERE file = ? AND serverid = ? GROUP BY serverid, userid ORDER BY c DESC LIMIT 20",
+        [$top_jobs[$job], $ajax_sid]
+    );
     echo '<table><thead><th> Server ID</th><th> User ID</th><th> Clicks </th></thead><tbody>';
-    foreach($d as $row) {
-        echo '<tr><td>'.$row->serverid.'</td><td>'.$row->userid.'</td><td>'.$row->c.'</td></tr>';
+    foreach ($d as $row) {
+        echo '<tr><td>' . (int)$row['serverid'] . '</td><td>' . (int)$row['userid'] . '</td><td>' . (int)$row['c'] . '</td></tr>';
     }
     echo '</tbody></table>';
 }
-if($_GET['job'] == 'loadTopSecstat') {
-    $d = dbExtend::getInstance()->get('select serverid, userid, count(userid) as c from gameserverlogdata where file in("secstatus") group by serverid, userid order by c desc limit 20;');
-    echo '<table><thead><th> Server ID</th><th> User ID</th><th> Clicks </th></thead><tbody>';
-    foreach($d as $row) {
-        echo '<tr><td>'.$row->serverid.'</td><td>'.$row->userid.'</td><td>'.$row->c.'</td></tr>';
+
+if ($job == 'loadClicks') {
+    $d = logdb_all(
+        "SELECT file, COUNT(file) AS clicks FROM gameserverlogdata WHERE userid = ? AND serverid = ? GROUP BY file ORDER BY clicks DESC",
+        [$ajax_uid, $ajax_sid]
+    );
+
+    if (empty($d)) {
+        die('Keine Daten gefunden!');
     }
-    echo '</tbody></table>';
-}
-if($_GET['job'] == 'loadTopSysnews') {
-    $d = dbExtend::getInstance()->get('select serverid, userid, count(userid) as c from gameserverlogdata where file in("sysnews") group by serverid, userid order by c desc limit 20;');
-    echo '<table><thead><th> Server ID</th><th> User ID</th><th> Clicks </th></thead><tbody>';
-    foreach($d as $row) {
-        echo '<tr><td>'.$row->serverid.'</td><td>'.$row->userid.'</td><td>'.$row->c.'</td></tr>';
-    }
-    echo '</tbody></table>';
-}
 
-if($_GET['job'] == 'loadClicks') {
-    $d = dbExtend::getInstance()->get('select file, count(file) as clicks  '
-        .' from gameserverlogdata '
-        .' where userid = '.sqlescape($_REQUEST['uid']).' and serverid = '.sqlescape($_REQUEST['sid'])
-        .' group by file order by clicks desc;');
-    //    die("<pre>".print_r($d,1)."</pre>");
+    $times = logdb_all(
+        "SELECT MAX(time) AS max, MIN(time) AS min FROM gameserverlogdata WHERE userid = ? AND serverid = ?",
+        [$ajax_uid, $ajax_sid]
+    );
+    $min_time = $times[0]['min'] ?? 'unbekannt';
+    $max_time = $times[0]['max'] ?? 'unbekannt';
 
-    if(!is_array($d)) die('no data found!');
-    $times = dbExtend::getInstance()->get('select max(time) as "max", min(time) as "min" from gameserverlogdata'
-        .' where userid = '.sqlescape($_REQUEST['uid'])).' and serverid = '.sqlescape($_REQUEST['sid']);
-
-    echo "<br><h3>Klicks für den Zeitraum vom ".$times[0]->min." bis ".$times[0]->max.'</h3>';
+    echo "<br><h3>Klicks f&uuml;r den Zeitraum vom " . htmlspecialchars((string)$min_time) . " bis " . htmlspecialchars((string)$max_time) . '</h3>';
     echo '<table><thead><th> Anzeigen</th><th> File</th><th> Clicks</th></thead><tbody>';
-    foreach($d as $row) {
-        echo '<tr><td><input type="checkbox" name="show['.$row->file.']" value="1" checked></td><td>'.$row->file.'</td><td>'.$row->clicks.'</td></tr>';
+    foreach ($d as $row) {
+        echo '<tr><td><input type="checkbox" name="show[' . htmlspecialchars((string)$row['file']) . ']" value="1" checked></td><td>' . htmlspecialchars((string)$row['file']) . '</td><td>' . (int)$row['clicks'] . '</td></tr>';
     }
     echo '</tbody></table>';
-    //    echo "<pre>".print_r($d,1)."</pre>";
 }
 
+if ($job == 'loadDay') {
+    // Datum validieren (YYYY-MM-DD), sonst wie "fehlend" behandeln
+    $day = req_str('day');
+    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $day)) {
+        echo '<tr><td colspan="26">Fehler: Kein Datum angegeben</td></tr>';
+    } else {
+        $d = logdb_all(
+            "SELECT HOUR(time) AS h, COUNT(HOUR(time)) AS clicks FROM gameserverlogdata WHERE time >= ? AND time <= ADDDATE(?, 1) AND userid = ? AND serverid = ? GROUP BY HOUR(time) ORDER BY HOUR(time) ASC LIMIT 30",
+            [$day, $day, $ajax_uid, $ajax_sid],
+            'h'
+        );
 
-
-if($_GET['job'] == 'loadDay') {
-    $d = dbExtend::getInstance()->get('select hour(time) as "hour", count(hour(time)) as clicks  '
-        .'from gameserverlogdata '
-        .' where time >= '.sqlescape($_GET['day'])
-        .' and time <= adddate('.sqlescape($_GET['day']).',1)'
-        .' and userid='.sqlescape($_GET['uid']).' and serverid = '.sqlescape($_REQUEST['sid'])
-        .' group by hour(time) order by "hour" asc  limit 30;','hour');
-
-    echo '<tr><td class="remove">remove</td><td>'.$_GET['day'].'</td>';
-    for($h=0;$h<=23;$h++) {
-        echo '<td class="hour" hour="'.$_GET['day'].' '.$h.':00:00">'.$d[$h]->clicks."</td>";
+        echo '<tr><td class="remove">remove</td><td>' . htmlspecialchars($day) . '</td>';
+        for ($h = 0; $h <= 23; $h++) {
+            $clicks = (int)($d[$h]['clicks'] ?? 0);
+            echo '<td class="hour" hour="' . htmlspecialchars($day) . ' ' . $h . ':00:00">' . $clicks . '</td>';
+        }
+        echo '</tr>';
     }
-    echo "</tr>";
 }
 
-if($_GET['job'] == 'loadLog') {
-    if($_GET['logType'] == 'communication') $query = 'select time, ip, file, getpost '
-    .' from gameserverlogdata '
-    .' where time >= '.sqlescape($_GET['startDate'])
-    .' and userid= '.sqlescape($_GET['uid']).' and serverid = '.sqlescape($_REQUEST['sid'])
-    .' and file in("hyperfunk","efta_chat","chat")'
-    .' and CHAR_LENGTH(getpost) > 22 '
-    .' order by time asc'
-    .' limit 30';
+if ($job == 'loadLog') {
+    // Startdatum: YYYY-MM-DD oder YYYY-MM-DD H:MM:SS, sonst auf heute zurückfallen
+    $startDate = req_str('startDate', req_str('day', date('Y-m-d')));
+    if (!preg_match('/^\d{4}-\d{2}-\d{2}( \d{1,2}:\d{2}:\d{2})?$/', $startDate)) {
+        $startDate = date('Y-m-d');
+    }
 
-    if($_GET['logType'] == 'military') $query = 'select time, ip, file, getpost '
-    .' from gameserverlogdata '
-    .' where time >= '.sqlescape($_GET['startDate'])
-    .' and userid= '.sqlescape($_GET['uid']).' and serverid = '.sqlescape($_REQUEST['sid'])
-    .' and file in("military","militarybs")'
-    .' and CHAR_LENGTH(getpost) > 22 '
-    .' order by time asc'
-    .' limit 30';
+    // logType bestimmt die Datei-Liste und ob nur Aufrufe mit Eingaben zählen
+    $log_types = [
+        'communication' => [['hyperfunk', 'efta_chat', 'chat'], true],
+        'military'      => [['military', 'militarybs'], true],
+        'scan'          => [['secret'], true],
+        'militaryscan'  => [['secret', 'military', 'militarybs'], true],
+        'sekstatsek'    => [['sector', 'secstatus'], false],
+        'bk'            => [['bkmenu'], false],
+    ];
 
-    if($_GET['logType'] == 'scan') $query = 'select time, ip, file, getpost '
-    .' from gameserverlogdata '
-    .' where time >= '.sqlescape($_GET['startDate'])
-    .' and userid= '.sqlescape($_GET['uid']).' and serverid = '.sqlescape($_REQUEST['sid'])
-    .' and file in("secret")'
-    .' and CHAR_LENGTH(getpost) > 22 '
-    .' order by time asc'
-    .' limit 30';
+    $logType = req_str('logType');
+    $withdata = false;
+    if (isset($log_types[$logType])) {
+        [$files, $withdata] = $log_types[$logType];
+    } elseif (isset($_GET['show']) && is_array($_GET['show'])) {
+        // "alle (nach Konfiguration)": Datei-Liste aus den Checkboxen
+        $files = array_map('strval', array_keys($_GET['show']));
+    } else {
+        $files = [];
+    }
 
-    if($_GET['logType'] == 'militaryscan') $query = 'select time, ip, file, getpost '
-    .' from gameserverlogdata '
-    .' where time >= '.sqlescape($_GET['startDate'])
-    .' and userid= '.sqlescape($_GET['uid']).' and serverid = '.sqlescape($_REQUEST['sid'])
-    .' and file in("secret","military","militarybs")'
-    .' and CHAR_LENGTH(getpost) > 22 '
-    .' order by time asc'
-    .' limit 30';
+    $sql = "SELECT time, ip, file, getpost FROM gameserverlogdata WHERE time >= ? AND userid = ? AND serverid = ?";
+    $params = [$startDate, $ajax_uid, $ajax_sid];
+    if (count($files) > 0) {
+        $sql .= " AND file IN (" . implode(',', array_fill(0, count($files), '?')) . ")";
+        $params = array_merge($params, $files);
+    }
+    if ($withdata) {
+        $sql .= " AND CHAR_LENGTH(getpost) > 22";
+    }
+    $sql .= " ORDER BY time ASC LIMIT 30";
 
-    if($_GET['logType'] == 'sekstatsek') $query = 'select time, ip, file, getpost '
-    .' from gameserverlogdata '
-    .' where time >= '.sqlescape($_GET['startDate'])
-    .' and userid= '.sqlescape($_GET['uid']).' and serverid = '.sqlescape($_REQUEST['sid'])
-    .' and file in("sector","secstatus")'
-    .' order by time asc'
-    .' limit 30';
-
-    if($_GET['logType'] == 'bk') $query = 'select time, ip, file, getpost '
-    .' from gameserverlogdata '
-    .' where time >= '.sqlescape($_GET['startDate'])
-    .' and userid= '.sqlescape($_GET['uid']).' and serverid = '.sqlescape($_REQUEST['sid'])
-    .' and file in("bkmenu")'
-    .' order by time asc'
-    .' limit 30';
-
-    if(!$query) $query = 'select time, ip, file, getpost '
-    .' from gameserverlogdata '
-    .' where time >= '.sqlescape($_GET['startDate'])
-    .' and userid='.sqlescape($_GET['uid']).' and serverid = '.sqlescape($_REQUEST['sid'])
-    .((is_array($_GET['show']))?' and file in("'.implode('","',array_keys($_GET['show'])).'")':'')
-    .' order by time asc'
-    .' limit 30';
-
-    $d = dbExtend::getInstance()->get($query);
+    $d = logdb_all($sql, $params);
 
     echo '<table><thead><tr><th>IP</th><th>Time</th><th>File</th><th>getpost</th></tr></thead><tbody>';
-    $num =0;
-    $index = (floor(strtotime($d[0]->time) / 60) *60) +60;
+
+    if (empty($d)) {
+        echo '<tr><td colspan="4">Keine Daten f&uuml;r diesen Zeitraum gefunden.</td></tr>';
+        echo '</tbody></table>';
+        return;
+    }
+
+    $num = 0;
     $lastRow = $d[0];
-    foreach($d as $row) {
-        if(strtotime($row->time) > $index) {
-            $num = abs($num-1);
-            $index = (floor(strtotime($row->time) / 60) *60) +60;
+    $index = (floor(strtotime($d[0]['time']) / 60) * 60) + 60;
+
+    foreach ($d as $row) {
+        // Zeilenfarbe pro angefangener Minute wechseln
+        if (strtotime($row['time']) > $index) {
+            $num = abs($num - 1);
+            $index = (floor(strtotime($row['time']) / 60) * 60) + 60;
         }
-        echo '<tr class="row'.$num.'">'
-        .'<td'.(($lastRow->ip != $row->ip)?' class="ipChanged"':'').'>'.$row->ip.'</td>'
-        .'<td>'.$row->time.' ('.(strtotime($row->time)-strtotime($lastRow->time)).'s)'.'</td>'
-        .'<td>'.$row->file.'</td>'
-        .'<td class="tooltip" alt="<pre>'.$row->getpost.'</pre>">'.substr($row->getpost,0,70).((strlen($row->getpost)>70)?'...':'').'</td></tr>';
+
+        $getpost = (string)$row['getpost'];
+        $ipClass = ($lastRow['ip'] != $row['ip']) ? ' class="ipChanged"' : '';
+        $timeDiff = ' (' . (strtotime($row['time']) - strtotime($lastRow['time'])) . 's)';
+
+        echo '<tr class="row' . $num . '">'
+            . '<td' . $ipClass . '>' . htmlspecialchars((string)$row['ip']) . '</td>'
+            . '<td>' . htmlspecialchars((string)$row['time']) . $timeDiff . '</td>'
+            . '<td>' . htmlspecialchars((string)$row['file']) . '</td>'
+            . '<td class="tooltip" alt="<pre>' . htmlspecialchars($getpost) . '</pre>">'
+            . htmlspecialchars(substr($getpost, 0, 70)) . ((strlen($getpost) > 70) ? '...' : '') . '</td></tr>';
+
         $lastRow = $row;
     }
-    echo '</tbody></table><input type="hidden" name="startDate" value="'.$row->time.'">';
 
+    echo '</tbody></table><input type="hidden" name="startDate" value="' . htmlspecialchars((string)$lastRow['time']) . '">';
 }
-
-?>
