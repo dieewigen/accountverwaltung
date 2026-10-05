@@ -6,6 +6,15 @@
 require_once __DIR__ . '/../inc/env.inc.php';
 
 if (!isset($GLOBALS['dbi_log'])) {
+    // Fehlende Zugangsdaten klar melden, statt anonym an localhost zu verbinden
+    foreach (['host', 'user', 'password', 'database'] as $log_key) {
+        if (!isset($GLOBALS['env_db_logging_' . $log_key])) {
+            error_log("ourdetool: \$GLOBALS['env_db_logging_$log_key'] fehlt in inc/env.inc.php");
+            http_response_code(500);
+            die('Logging-Datenbank nicht konfiguriert: env_db_logging_* fehlt in inc/env.inc.php.');
+        }
+    }
+
     $GLOBALS['dbi_log'] = mysqli_connect(
         $GLOBALS['env_db_logging_host'],
         $GLOBALS['env_db_logging_user'],
