@@ -49,12 +49,12 @@ $createok=0;
 if(isset($_POST['button']) AND $hasall==1){
   //$target=intval($_REQUEST["server"]);
   $spielername=$_REQUEST["spielername"] ?? '';
-  $rasse=$_REQUEST["rasse"];
+  $rasse=$_REQUEST["rasse"] ?? '';
 
   
   //rasse überprüfen
   if($gametyp==1)
-  switch($rasse[0]){
+  switch(substr($rasse, 0, 1)){
     case 'E':
       $gewrasse=1;
       break;
@@ -191,46 +191,52 @@ echo '<tr>
 //bei de noch die rasse abfragen
 if($gametyp==1)
 {
-echo ' <tr>
-        <td>'.$createaccount_lang['rasse'].':</td>
-        <td><select name="rasse">';
-            if (!isset($rasse) || $rasse=='')$rasse=$createaccount_lang['bittewaehlen'];
-            echo '<option selected>'.$rasse.'</option>';
-            echo'
-            <option>'.$createaccount_lang['e'].'</option>
-            <option>'.$createaccount_lang['i'].'</option>
-            <option>'.$createaccount_lang['k'].'</option>
-            <option>'.$createaccount_lang['z'].'</option>
-            </select>
-        </td>
-      </tr>
-      <tr>
+//die rassen als karten mit radiobuttons, ein klick auf die karte wählt die rasse (auch ohne javascript)
+//übertragen wird E, I, K oder Z, ausgewertet wird oben nur der erste buchstabe
+$rassewahl=isset($rasse) ? substr($rasse, 0, 1) : '';
+echo '<tr>
         <td colspan="2">
-          <img id="rdesc1" src="img/derassenlogo1.png" title="'.$createaccount_lang['e'].'&'.$createaccount_lang['edesc'].'">
-          <img id="rdesc2" src="img/derassenlogo2.png" title="'.$createaccount_lang['i'].'&'.$createaccount_lang['idesc'].'">
-          <img id="rdesc3" src="img/derassenlogo3.png" title="'.$createaccount_lang['k'].'&'.$createaccount_lang['kdesc'].'">
-          <img id="rdesc4" src="img/derassenlogo4.png" title="'.$createaccount_lang['z'].'&'.$createaccount_lang['zdesc'].'">
-<script language="javascript">
-for(i=1;i<=4;i++)
-$("#rdesc"+i).tooltip({ 
-      track: true, 
-      delay: 0, 
-      showURL: false, 
-      showBody: "�",
-      extraClass: "design1", 
-      fixPNG: true, 
-      opacity: 0.95
-	  });
-</script>
-          
+<style>
+.race-select{border: 0; margin: 10px 0 0 0; padding: 0; min-width: 0;}
+.race-select legend{padding: 0; margin-bottom: 8px; font-weight: bold;}
+.race-list{display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;}
+.race-card{display: block; padding: 10px; border: 1px solid #666666; border-radius: 4px; background: rgba(0, 0, 0, 0.4); font-size: 14px; line-height: 1.4; cursor: pointer;}
+.race-card.race-recommended{border-color: #f8ae56;}
+.race-card:has(input:checked){border-color: #3399FF; box-shadow: 0 0 0 2px #3399FF; background: rgba(51, 153, 255, 0.15);}
+.race-head{display: flex; align-items: center; gap: 10px; margin-bottom: 8px;}
+.race-head input{flex-shrink: 0; width: 18px; height: 18px; margin: 0;}
+.race-head img{flex-shrink: 0; width: 64px; height: 64px;}
+.race-name{font-size: 18px; font-weight: bold;}
+.race-badge{display: inline-block; margin-top: 4px; padding: 2px 8px; border-radius: 10px; background: #f8ae56; color: #000000; font-size: 12px; font-weight: bold;}
+.race-desc{display: block;}
+@media (hover: hover){.race-card:hover{background-color: rgba(255, 255, 255, 0.08);}}
+@media (max-width: 640px){.race-list{grid-template-columns: minmax(0, 1fr);}}
+</style>
+          <fieldset class="race-select">
+            <legend>'.$createaccount_lang['rassewaehlen'].'</legend>
+            <div class="race-list">';
+foreach(array(1=>'E', 2=>'I', 3=>'K', 4=>'Z') as $bildnr=>$wert){
+	$key=strtolower($wert);
+	$empfohlen=($wert=='E');
+	echo '
+              <label class="race-card'.($empfohlen ? ' race-recommended' : '').'">
+                <span class="race-head">
+                  <input type="radio" name="rasse" value="'.$wert.'" required'.($rassewahl==$wert ? ' checked' : '').'>
+                  <img src="img/derassenlogo'.$bildnr.'.png" alt="">
+                  <span>
+                    <span class="race-name">'.$createaccount_lang[$key].'</span>'.
+                    ($empfohlen ? '<br><span class="race-badge">'.$createaccount_lang['empfehlung'].'</span>' : '').'
+                  </span>
+                </span>
+                <span class="race-desc">'.$createaccount_lang[$key.'desc'].'</span>
+              </label>';
+}
+echo '
+            </div>
+          </fieldset>
         </td>
-        
-      </td>
-      
-      
-      
-      ';
-}            
+      </tr>';
+}
 echo '<tr>
         <td colspan="2" align="center"><input type="Submit" name="button" value="'.$createaccount_lang['datenbestaetigen'].'"></td>
       </tr>

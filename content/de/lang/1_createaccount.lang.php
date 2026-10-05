@@ -3,6 +3,8 @@ $createaccount_lang['accounterstellen']='Account erstellen';
 $createaccount_lang['spielername']='Spielername';
 $createaccount_lang['rasse']='Rasse';
 $createaccount_lang['bittewaehlen']='Bitte w&auml;hlen';
+$createaccount_lang['rassewaehlen']='W&auml;hle Deine Rasse';
+$createaccount_lang['empfehlung']='Empfohlen f&uuml;r neue Spieler';
 $createaccount_lang['e']='Ewiger';
 $createaccount_lang['edesc']='Die Ewigen sind ein humanoides Volk dessen Herkunft ein Geheimnis ist. Man sagt dieses Volk sei schon alt gewesen als die anderen alten V&ouml;lker noch jung waren.<br><br> 
 Sie beherrschten schon fr&uuml;hzeitig die &uuml;berlichtschnelle Raumfahrt und haben auch in entfernten Regionen Kolonien gegr&uuml;ndet.<br><br>

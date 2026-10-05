@@ -131,13 +131,30 @@ if (isset($_REQUEST['newreg'])) {
             mysqli_execute_query($GLOBALS['dbi'], $sql, [$email1, $email1, $newpass_crypt, $ip, $spielername]);
 
             //registrierungs-email versenden
+            $loginurl = 'https://login.die-ewigen.com/';
 
-            // Aktivierungs-Link
-            $text = $newreg_lang['regmailbody'];
-            //Paswort und Login-Name eintragen
-            $text = str_replace("{SPIELER}", utf8_decode_fix($spielername), $text);
-            $text = str_replace("{LOGIN}", $email1, $text);
-            $text = str_replace("{PASS}", $newpass, $text);
+            //Spielername, Login, Passwort und Loginseite eintragen
+            $platzhalter = array(
+                '{SPIELER}' => $spielername,
+                '{LOGIN}' => $email1,
+                '{PASS}' => $newpass,
+                '{LOGINURL}' => $loginurl,
+            );
+            $text = strtr($newreg_lang['regmailbody'], $platzhalter);
+            //in der HTML-Fassung die eingesetzten Werte escapen
+            $html = strtr($newreg_lang['regmailbody_html'], array_map(fn($wert) => htmlspecialchars($wert, ENT_QUOTES, 'UTF-8'), $platzhalter));
+
+            //HTML-Rahmen wie bei den Mails aus cron/lscron.php
+            $body = '<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style>body{font-family: Tahoma, Verdana, Arial, Helvetica, sans-serif;font-size: 16px;
+color: #FFFFFF;background-color: #000000;} a {color: #f8ae56;} </style>
+</head><body leftmargin="0" topmargin="0" marginheight="0" marginwidth="0" bgcolor="#000000">
+<table cellspacing="0" cellpadding="0" width="100%" border="0" bgcolor="#000000">
+<tr><td width="100%" align="center" style="padding: 20px 10px; background-image:url('.$loginurl.'img/bg.jpg);">
+<table cellspacing="0" cellpadding="0" width="600" border="0" style="width: 100%; max-width: 600px; background-image:url('.$loginurl.'img/bgtr1.png);">
+<tr><td align="left" style="padding: 20px; font-family: Tahoma, Verdana, Arial, Helvetica, sans-serif; font-size: 16px; line-height: 1.4; color: #FFFFFF;">
+'.$html.'
+</td></tr></table></td></tr></table></body></html>';
 
             //mail Senden:
 
@@ -145,6 +162,7 @@ if (isset($_REQUEST['newreg'])) {
             require_once 'lib/phpmailer/class.smtp.php';
 
             $mail = new PHPMailer();
+            $mail->CharSet = 'UTF-8';
 
             $mail->isSMTP();
             $mail->Host = $GLOBALS['env_mail_server'];
@@ -158,7 +176,9 @@ if (isset($_REQUEST['newreg'])) {
             $mail->addReplyTo($GLOBALS['env_mail_noreply'], 'Die Ewigen');
             $mail->addAddress($email1, utf8_decode_fix(' '));
             $mail->Subject = $newreg_lang['regmailbetreff'];
-            $mail->Body = $text;
+            $mail->isHTML(true);
+            $mail->Body = $body;
+            $mail->AltBody = $text;
 
             //send the message, check for errors
             $mail->send();

@@ -1,7 +1,23 @@
 <?php
-$newreg_lang['regmailbody']='Hallo {SPIELER}!
+//Textfassung der Registrierungsmail (AltBody)
+$newreg_lang['regmailbody']='Hallo {SPIELER},
 
-Dein Passwort lautet: {PASS}
+willkommen bei Die Ewigen! Deine Anmeldung hat geklappt. Mit diesen Daten loggst Du Dich ein:
+
+Login (Deine E-Mail-Adresse): {LOGIN}
+Passwort: {PASS}
+
+Zur Loginseite: {LOGINURL}
+
+So geht es weiter:
+1. Logge Dich auf der Loginseite mit Deiner E-Mail-Adresse und dem Passwort ein.
+2. Nach dem Login siehst Du die Spielserver. Klicke bei einem Server auf „Anmeldung“. Server mit dem Hinweis „Für neue Spieler!“ eignen sich besonders für den Einstieg.
+3. Dein Spielername ist schon eingetragen. Wähle Deine Rasse und klicke auf „Account anlegen“. Für den Einstieg empfehlen wir die Ewigen.
+4. Nach etwa 2-3 Minuten ist Dein Spielkonto eingerichtet. Dann klickst Du beim Server auf „Spielen“.
+
+Dein Passwort wurde automatisch erzeugt. Nach dem Login kannst Du es unter „Account“ > „Passwort ändern“ durch ein eigenes ersetzen.
+
+Bitte logge Dich innerhalb von 7 Tagen ein. Accounts, mit denen sich bis dahin niemand eingeloggt hat, werden automatisch gelöscht.
 
 Solltest Du dich nicht bei Die Ewigen angemeldet haben, so ignoriere diese E-Mail einfach, vermutlich hat jemand versehentlich Deine E-Mail-Adresse eingegeben.
 
@@ -14,6 +30,36 @@ Deutschland
 E-Mail: issomad@die-ewigen.com
 Telefon: 03212 - 1046989 (kein Support)
 Gerichtsstand: Amtsgericht Homburg
+';
+
+//HTML-Fassung der Registrierungsmail, der Rahmen kommt aus register.inc.php
+$newreg_lang['regmailbody_html']='<h1 style="font-size: 24px; margin: 0 0 15px 0;">Willkommen bei Die Ewigen!</h1>
+<p>Hallo {SPIELER},</p>
+<p>Deine Anmeldung hat geklappt. Mit diesen Daten loggst Du Dich ein:</p>
+<table cellspacing="0" cellpadding="4" border="0">
+<tr><td style="color: #FFFFFF;">Login (Deine E-Mail-Adresse):</td><td style="color: #FFFFFF;"><b>{LOGIN}</b></td></tr>
+<tr><td style="color: #FFFFFF;">Passwort:</td><td style="color: #FFFFFF;"><b>{PASS}</b></td></tr>
+</table>
+<p>Zur Loginseite: <a href="{LOGINURL}" style="color: #f8ae56;"><b>{LOGINURL}</b></a></p>
+<h2 style="font-size: 18px; margin: 25px 0 10px 0;">So geht es weiter</h2>
+<ol style="padding-left: 20px;">
+<li>Logge Dich auf der Loginseite mit Deiner E-Mail-Adresse und dem Passwort ein.</li>
+<li>Nach dem Login siehst Du die Spielserver. Klicke bei einem Server auf „Anmeldung“. Server mit dem Hinweis „Für neue Spieler!“ eignen sich besonders für den Einstieg.</li>
+<li>Dein Spielername ist schon eingetragen. Wähle Deine Rasse und klicke auf „Account anlegen“. Für den Einstieg empfehlen wir die Ewigen.</li>
+<li>Nach etwa 2-3 Minuten ist Dein Spielkonto eingerichtet. Dann klickst Du beim Server auf „Spielen“.</li>
+</ol>
+<p>Dein Passwort wurde automatisch erzeugt. Nach dem Login kannst Du es unter „Account“ &gt; „Passwort ändern“ durch ein eigenes ersetzen.</p>
+<p>Bitte logge Dich innerhalb von 7 Tagen ein. Accounts, mit denen sich bis dahin niemand eingeloggt hat, werden automatisch gelöscht.</p>
+<p>Solltest Du dich nicht bei Die Ewigen angemeldet haben, so ignoriere diese E-Mail einfach, vermutlich hat jemand versehentlich Deine E-Mail-Adresse eingegeben.</p>
+<p style="font-size: 12px;">Impressum:<br>
+Tino Tauchmann<br>
+Eckstrasse 32<br>
+66440 Blieskastel<br>
+Deutschland<br>
+<br>
+E-Mail: issomad@die-ewigen.com<br>
+Telefon: 03212 - 1046989 (kein Support)<br>
+Gerichtsstand: Amtsgericht Homburg</p>
 ';
 
 $newreg_lang['laenderliste']='<option>Ägypten</option>
@@ -111,7 +157,7 @@ $newreg_lang['jahr']='Jahr';
 $newreg_lang['maennlich']='m&auml;nnlich';
 $newreg_lang['monat']='Monat';
 $newreg_lang['neuenaccountanlegen']='Neuen Account anlegen';
-$newreg_lang['regmailbetreff']='Deine Anmeldung bei DIE EWIGEN';
+$newreg_lang['regmailbetreff']='Willkommen bei Die Ewigen: Deine Zugangsdaten';
 
 $newreg_lang['servervoll']='Das Userlimit f&uuml;r den Server wurde erreicht. Es werden jedoch inaktive User gel&ouml;scht und so k&ouml;nnen wieder freie Pl&auml;tze entstehen. Versuchen Sie es bitte daher sp&auml;ter nocheinmal.';
 $newreg_lang['spaet1']='Da die aktuelle Runde bereits seit ';
