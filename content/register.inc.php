@@ -4,8 +4,6 @@ include 'content/de/lang/'.$ums_language.'_register.lang.php';
 
 $fehlermsg = '';
 
-echo '<div id="register-page">';
-
 function is_email($email)
 {
 
@@ -124,8 +122,8 @@ if (isset($_REQUEST['newreg'])) {
                 register, last_login, acc_status,
                 last_ip, spielername
             ) VALUES (
-                ?, ?, ?, 
-                NOW(), NOW(), 1, 
+                ?, ?, ?,
+                NOW(), NOW(), 1,
                 ?, ?
             )";
             mysqli_execute_query($GLOBALS['dbi'], $sql, [$email1, $email1, $newpass_crypt, $ip, $spielername]);
@@ -192,58 +190,51 @@ color: #FFFFFF;background-color: #000000;} a {color: #f8ae56;} </style>
     }
 }
 
-echo '<form action="index.php?command=register" method="post">';
-
-//echo '<h1>'.$newreg_lang['accountregistrierung'].'</h1>';
+echo '<h1>Registrierung</h1>';
 
 if (isset($fehlermsg) && $fehlermsg != '') {
-    echo '<font color="#CC0000">'.$fehlermsg.'</font><br><br>';
+    //führende Zeilenumbrüche aus den aneinandergehängten Meldungen entfernen
+    echo '<div class="hinweis hinweis-fehler">'.preg_replace('/^(<br>)+/', '', $fehlermsg).'</div>';
 }
 
 
 /////////////////////////////////////////////////////////////////
 // Registrierung per E-Mail
 /////////////////////////////////////////////////////////////////
-echo '
-<div class="box-right">
-	<h2>Registrierung</h2>
-';
+echo '<form class="formular" action="index.php?command=register" method="post">';
 
 //Email 1
-echo '<div>'.$newreg_lang['email'].':</div>';
-echo '<div class="mt5"></div>';
-echo '<div><input type="text" name="email1" size="30" maxlength="100" value="'.$email1.'"></div>';
+echo '<div class="feld">
+	<label for="email1">'.$newreg_lang['email'].'</label>
+	<input type="text" name="email1" id="email1" maxlength="100" value="'.$email1.'" autocomplete="email">
+</div>';
 
 //Spielername
-echo '<div class="mt15"></div>';
-echo '<div>'.$newreg_lang['spielername'].':</div>';
-echo '<div class="mt5"></div>';
-echo '<div><input type="text" name="spielername" size="30" maxlength="20" value="'.$spielername.'"></div>';
+echo '<div class="feld">
+	<label for="spielername">'.$newreg_lang['spielername'].'</label>
+	<input type="text" name="spielername" id="spielername" maxlength="20" value="'.$spielername.'">
+</div>';
 
 //Country - dient als Honeypot, wenn dort Werte eingetragen werden, wird der Account nicht angelegt
-echo '
-<div class="mt15 country">
-    <div>Country:</div>
-    <div class="mt5"></div>
-    <div><input type="text" name="country" size="30" maxlength="20" value="'.$country.'"></div>
+echo '<div class="feld country">
+	<label for="country">Country:</label>
+	<input type="text" name="country" id="country" maxlength="20" value="'.$country.'" tabindex="-1" autocomplete="off">
 </div>';
 
 
 //AGB/Datenschutz
-echo '<div class="mt15">
-<input type="Checkbox" ';
+echo '<div class="feld-check">
+	<input type="Checkbox" id="agb" ';
 if ($agb == "1") {
     echo "checked";
 }
-echo ' name="agb" value="1">'.$newreg_lang['agb1'].' 
-	<a href="'.$GLOBALS['env_url_datenschutz'].'" target="_blank">'.$newreg_lang['agb2'].'</a> und die <a href="'.$GLOBALS['env_url_datenschutz'].'" target="_blank">Datenschutzerkl&auml;rung. Ich bin 16 Jahre oder &auml;lter, bzw. habe die Erlaubnis meiner/meines Erziehungsberechtigten.</a>
+echo ' name="agb" value="1">
+	<label for="agb">'.$newreg_lang['agb1'].'
+	<a href="'.$GLOBALS['env_url_datenschutz'].'" target="_blank">'.$newreg_lang['agb2'].'</a> und die <a href="'.$GLOBALS['env_url_datenschutz'].'" target="_blank">Datenschutzerkl&auml;rung</a>. Ich bin 16 Jahre oder &auml;lter, bzw. habe die Erlaubnis meiner/meines Erziehungsberechtigten.</label>
 </div>';
 
-echo '<div class="mt15"></div>';
-echo '		<input class="btn1" type="Submit" name="newreg" value="'.$newreg_lang['registrieren'].'">
-
-			</div>
-	
-		</form>
-	<div style="font-weight: bold; color: #CC0000; margin-top: 20px; width: 100%; text-align: center;">'.$newreg_lang['hinweis'].'</div>
-</div>';
+echo '<div class="formular-aktionen">
+	<input class="knopf knopf-primaer" type="Submit" name="newreg" value="'.$newreg_lang['registrieren'].'">
+</div>
+</form>
+<div class="hinweis hinweis-warn abstand-oben">'.$newreg_lang['hinweis'].'</div>';

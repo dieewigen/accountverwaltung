@@ -4,6 +4,11 @@
 
 $time = time();
 
+//Unterseiten (Bestehende Tickets, Neues Ticket erstellen) als Reiter, aufgebaut in m_main.php
+if (isset($um) && $um != '') {
+    echo $um;
+}
+
 //bestehende tickets
 if ($_REQUEST['page'] == 1) {
 
@@ -19,9 +24,9 @@ if ($_REQUEST['page'] == 1) {
         $num = mysqli_num_rows($db_daten);
         if ($num > 0) {
             //kopf
-            echo '<div style="width: 100%; overflow: auto;">';
+            echo '<div class="tabelle">';
             echo '<table>';
-            echo '<tr><td>Betreff</td><td>erstellt</td><td>letzte &auml;nderung</td><td>Status</td></tr>';
+            echo '<tr><th>Betreff</th><th>erstellt</th><th>letzte &auml;nderung</th><th>Status</th></tr>';
 
             while ($row = mysqli_fetch_array($db_daten)) {
                 echo '<tr>';
@@ -42,7 +47,7 @@ if ($_REQUEST['page'] == 1) {
             echo '</table>';
             echo '</div>';
         } else {
-            echo 'Es gibt keine Tickets.';
+            echo '<p>Es gibt keine Tickets.</p>';
         }
     } else { //ticket anzeigen mit Eingabemöglichkeit für eine Antwort
         $ticket_id = intval($_REQUEST['showtid']);
@@ -89,7 +94,7 @@ if ($_REQUEST['page'] == 1) {
 
 
                 //nachricht ausgeben
-                echo '<div style="width: 100%; padding: 5px; background-color: #222222;">'.$row['thema'].'</div>';
+                echo '<div class="seitentitel">'.$row['thema'].'</div>';
 
                 //die einzelnen posts
                 /* Altes Statement:
@@ -101,28 +106,28 @@ if ($_REQUEST['page'] == 1) {
                     [$ticket_id]
                 );
                 while ($row = mysqli_fetch_array($db_daten)) {
+                    //eigene Beiträge neutral, Antworten des Supports grün abgesetzt
+                    if ($row['poster'] == $ums_spielername) {
+                        $beitragklasse = 'beitrag';
+                    } else {
+                        $beitragklasse = 'beitrag beitrag-support';
+                    }
+                    echo '<div class="'.$beitragklasse.'">';
                     //header
-                    if ($row['poster'] == $ums_spielername) {
-                        $bgcolor = '#444444';
-                    } else {
-                        $bgcolor = '#446644';
-                    }
-                    echo '<div style="width: 100%; margin-top: 2px; padding: 5px; background-color: '.$bgcolor.';">'.utf8_encode_fix($row['poster']).' - '.date("G:i d.m.Y", $row['created']).'</div>';
+                    echo '<div class="beitrag-kopf">'.utf8_encode_fix($row['poster']).' - '.date("G:i d.m.Y", $row['created']).'</div>';
                     //body
-                    if ($row['poster'] == $ums_spielername) {
-                        $bgcolor = '#222222';
-                    } else {
-                        $bgcolor = '#226622';
-                    }
-                    echo '<div style="width: 100%; margin-top: 1px; padding: 5px; background-color: '.$bgcolor.';">'.utf8_encode_fix($row['message']).'</div>';
+                    echo '<div class="beitrag-text">'.utf8_encode_fix($row['message']).'</div>';
+                    echo '</div>';
                 }
 
                 //antwortformular
                 echo '<form action="index.php?command=support&page=1&reply=1&showtid='.$ticket_id.'" method="POST">';
-                echo '<br>Nachricht:<br>';
-                echo '<textarea rows="12" name="nachricht" cols="75"></textarea>';
+                echo '<div class="feld">';
+                echo '<label for="nachricht">Nachricht</label>';
+                echo '<textarea rows="12" name="nachricht" id="nachricht"></textarea>';
+                echo '</div>';
 
-                echo '<div align="center"><br><input type="submit" name="bieten" value="Nachricht senden"></div>';
+                echo '<div class="formular-aktionen"><input class="knopf knopf-primaer" type="submit" name="bieten" value="Nachricht senden"></div>';
 
                 echo '</form>';
 
@@ -145,34 +150,34 @@ elseif ($_REQUEST['page'] == 2) {
     //�berpr�fen, ob ein neues ticket erstellt werden soll
     if ($_REQUEST['createticket'] == 1) {
         if ($_REQUEST['thema'] == 0) {
-            echo '<font color="#FF0000">W&auml;hle bitte aus worum es geht.</font><br>';
+            echo '<div class="hinweis hinweis-fehler">W&auml;hle bitte aus worum es geht.</div>';
             $hasall = 0;
         }
         if ($_REQUEST['nachricht'] == '') {
-            echo '<font color="#FF0000">Die Nachricht ist leer.</font><br>';
+            echo '<div class="hinweis hinweis-fehler">Die Nachricht ist leer.</div>';
             $hasall = 0;
         }
     }
 
     if ($hasall == 1 and $_REQUEST['createticket'] == 1) {//ticket in der db hinterlegen
-        echo '<font color="#00FF00">Das Ticket wurde gespeichert und wird schnellstm&ouml;glich bearbeitet.</font>';
+        echo '<div class="hinweis hinweis-erfolg">Das Ticket wurde gespeichert und wird schnellstm&ouml;glich bearbeitet.</div>';
         $themasql = trim($themen[$_REQUEST['thema']]);
 
         $messagesql = trim($_REQUEST['nachricht']);
         $messagesql = htmlspecialchars($messagesql, ENT_COMPAT | ENT_HTML401, 'ISO-8859-1');
         $messagesql = str_replace('\r\n', '<br>', $messagesql);
         $messagesql = utf8_decode($messagesql);
-       
+
         // Neues Statement mit mysqli_execute_query (PHP 8.4+)
         mysqli_execute_query(
             $GLOBALS['dbi'],
             "INSERT INTO ls_tickets SET user_id=?, thema=?, created=?, modified=?, status=0",
             [$_SESSION['ums_user_id'], $themasql, $time, $time]
         );
-        
+
         // Ticket ID abrufen
         $ticket_id = mysqli_insert_id($GLOBALS['dbi']);
-        
+
         // Zweites Statement mit mysqli_execute_query
         mysqli_execute_query(
             $GLOBALS['dbi'],
@@ -205,12 +210,13 @@ elseif ($_REQUEST['page'] == 2) {
         //mail('supportverteiler@die-ewigen.com', 'Neues Ticket: '.$themasql, $messagesql, 'FROM: intern@die-ewigen.com');
     } else { //ticketeingabe anbieten
         echo '<form action="index.php?command=support&page=2&createticket=1" method="POST">';
-        echo 'Wenn Du Fragen hast, dann kannst Du diese hier stellen und wir beantworten diese so schnell es geht.<br>';
+        echo '<p>Wenn Du Fragen hast, dann kannst Du diese hier stellen und wir beantworten diese so schnell es geht.</p>';
 
-        echo 'Worum geht es?&nbsp;&nbsp;&nbsp;';
+        echo '<div class="feld formular">';
+        echo '<label for="thema">Worum geht es?</label>';
 
         echo '
-    	<select name="thema">';
+    	<select name="thema" id="thema">';
         for ($i = 0;$i < count($themen);$i++) {
             echo '<option value="'.$i.'"';
             if ($i == $_REQUEST['thema']) {
@@ -221,13 +227,15 @@ elseif ($_REQUEST['page'] == 2) {
         }
 
         echo '</select>';
+        echo '</div>';
 
-        echo '<br>Nachricht:<br>';
+        echo '<div class="feld">';
+        echo '<label for="nachricht">Nachricht</label>';
 
+        echo '<textarea rows="12" name="nachricht" id="nachricht">'.str_replace('\r\n', "\n", $_REQUEST['nachricht']).'</textarea>';
+        echo '</div>';
 
-        echo '<textarea rows="12" name="nachricht" cols="75">'.str_replace('\r\n', "\n", $_REQUEST['nachricht']).'</textarea>';
-
-        echo '<div align="center"><br><input type="submit" name="bieten" value="Ticket erstellen"></div>';
+        echo '<div class="formular-aktionen"><input class="knopf knopf-primaer" type="submit" name="bieten" value="Ticket erstellen"></div>';
 
         echo '</form>';
     }

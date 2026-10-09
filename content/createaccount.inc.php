@@ -30,12 +30,12 @@ if(isset($serverdata[$target][11][1]) && $serverdata[$target][11][1]==1)
 
 //fehlermeldung ausgeben, wenn nicht alle vorbedinungen erfüllt sind, sonst ok-meldung ausgeben
 if($hasall==1){
-	//echo '<font color="#00FF00">'.$createaccount_lang['vorbedingungerfuellt'].'</font><br><br>';
+	//echo '<div class="hinweis hinweis-erfolg">'.$createaccount_lang['vorbedingungerfuellt'].'</div>';
 }else {
 	if($hasall==-1){
-		echo '<font color="#FF0000">'.$createaccount_lang['vorbedingungnichterfuellt'].'<br>'.$createaccount_lang['vorbedingungranglistenplatz'].': '.$serverdata[$target][11][0].'</font><br><br>';
+		echo '<div class="hinweis hinweis-fehler">'.$createaccount_lang['vorbedingungnichterfuellt'].'<br>'.$createaccount_lang['vorbedingungranglistenplatz'].': '.$serverdata[$target][11][0].'</div>';
 	}elseif($hasall==-2){
-		echo '<font color="#FF0000">'.$createaccount_lang['vorbedingungnichterfuellt'].'<br>'.$createaccount_lang['vorbedingungbetatester'].'</font><br><br>';
+		echo '<div class="hinweis hinweis-fehler">'.$createaccount_lang['vorbedingungnichterfuellt'].'<br>'.$createaccount_lang['vorbedingungbetatester'].'</div>';
 	}
 }
 
@@ -68,7 +68,7 @@ if(isset($_POST['button']) AND $hasall==1){
       $gewrasse=4;
       break;
     default:
-      $errmsg.='<font color="FF0000"><b>'.$createaccount_lang['msg_1'].'</b></font>';
+      $errmsg.='<div class="hinweis hinweis-fehler"><b>'.$createaccount_lang['msg_1'].'</b></div>';
       break;
   }
 
@@ -81,7 +81,7 @@ if(isset($_POST['button']) AND $hasall==1){
 		if($spielername!=''){
 			//spielernamen auf g�ltige zeichen �berpr�fen
 			if(!preg_match("/^[[:alpha:]0-9äöü_=-]*$/i", $spielername)){
-				$errmsg.='<font color="FF0000">'.$createaccount_lang['msg_2'].': _-=).</font>';
+				$errmsg.='<div class="hinweis hinweis-fehler">'.$createaccount_lang['msg_2'].': _-=).</div>';
 			}else{
 				//fehlende daten für das erstellen des accounts auslesen
 				$result = mysqli_execute_query(
@@ -131,27 +131,27 @@ if(isset($_POST['button']) AND $hasall==1){
 				switch($result){
 					case '1':
 						//account ohne fehler angelegt
-						$errmsg.='<font color="00FF00">'.$createaccount_lang['msg_3'].'</font>';
+						$errmsg.='<div class="hinweis hinweis-erfolg">'.$createaccount_lang['msg_3'].'</div>';
 						$createok=1;
 					break;
 					case '2':
 						//spielername ist bereits vergeben
-						$errmsg.='<font color="FF0000">'.$createaccount_lang['msg_4'].'</font>';
+						$errmsg.='<div class="hinweis hinweis-fehler">'.$createaccount_lang['msg_4'].'</div>';
 					break;
 					case '3':
 						//test auf emailadresse
-						$errmsg.='<font color="FF0000">'.$createaccount_lang['msg_5_1'].' '.$email.' '.$createaccount_lang['msg_5_2'].'</font>';
+						$errmsg.='<div class="hinweis hinweis-fehler">'.$createaccount_lang['msg_5_1'].' '.$email.' '.$createaccount_lang['msg_5_2'].'</div>';
 					break;
 					case '4':
 						//test auf owner_id
-						$errmsg.='<font color="FF0000">'.$createaccount_lang['msg_6'].'</font>';
+						$errmsg.='<div class="hinweis hinweis-fehler">'.$createaccount_lang['msg_6'].'</div>';
 					break;
 					default:
-						$errmsg.='<font color="FF0000">'.$createaccount_lang['msg_7'].'</font>';
+						$errmsg.='<div class="hinweis hinweis-fehler">'.$createaccount_lang['msg_7'].'</div>';
 				}//ende switch $result
 			}
 		}else{
-			$errmsg.='<font color="FF0000">'.$createaccount_lang['msg_8'].'</font>';
+			$errmsg.='<div class="hinweis hinweis-fehler">'.$createaccount_lang['msg_8'].'</div>';
 		}
 	}
 }
@@ -174,44 +174,22 @@ if($spielername==''){
 if($createok!=1){
 
 echo '<form action="index.php?command=createaccount&server='.$_REQUEST["server"].'" method="POST">';
-echo '<table border="0" cellpadding="3" cellspacing="0" style="margin: 0px auto;">';
 
 //spielernamen wählen, nur bei se und de
 if($gametyp==1 || $gametyp==2 || $gametyp==5)
-echo '<tr>
-        <td colspan="2" align="center"><b>'.$createaccount_lang['accounterstellen'].'</b></td>
-      </tr>
-      <tr>
-        <td colspan="2" align="center">'.$createaccount_lang['msg_9_1'].' '.$serverdata[$_REQUEST["server"]][0].'-'.$createaccount_lang['msg_9_2'].'</td>
-      </tr>
-      <tr>
-        <td width="180">'.$createaccount_lang['spielername'].':</td>
-        <td><input type="text" maxlength="20" name="spielername" value="'.$spielername.'"></td>
-      </tr>';
+echo '<h1>'.$createaccount_lang['accounterstellen'].'</h1>
+      <p>'.$createaccount_lang['msg_9_1'].' '.$serverdata[$_REQUEST["server"]][0].'-'.$createaccount_lang['msg_9_2'].'</p>
+      <div class="feld formular">
+        <label for="spielername">'.$createaccount_lang['spielername'].'</label>
+        <input type="text" maxlength="20" name="spielername" id="spielername" value="'.$spielername.'">
+      </div>';
 //bei de noch die rasse abfragen
 if($gametyp==1)
 {
 //die rassen als karten mit radiobuttons, ein klick auf die karte wählt die rasse (auch ohne javascript)
 //übertragen wird E, I, K oder Z, ausgewertet wird oben nur der erste buchstabe
 $rassewahl=isset($rasse) ? substr($rasse, 0, 1) : '';
-echo '<tr>
-        <td colspan="2">
-<style>
-.race-select{border: 0; margin: 10px 0 0 0; padding: 0; min-width: 0;}
-.race-select legend{padding: 0; margin-bottom: 8px; font-weight: bold;}
-.race-list{display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;}
-.race-card{display: block; padding: 10px; border: 1px solid #666666; border-radius: 4px; background: rgba(0, 0, 0, 0.4); font-size: 14px; line-height: 1.4; cursor: pointer;}
-.race-card.race-recommended{border-color: #f8ae56;}
-.race-card:has(input:checked){border-color: #3399FF; box-shadow: 0 0 0 2px #3399FF; background: rgba(51, 153, 255, 0.15);}
-.race-head{display: flex; align-items: center; gap: 10px; margin-bottom: 8px;}
-.race-head input{flex-shrink: 0; width: 18px; height: 18px; margin: 0;}
-.race-head img{flex-shrink: 0; width: 64px; height: 64px;}
-.race-name{font-size: 18px; font-weight: bold;}
-.race-badge{display: inline-block; margin-top: 4px; padding: 2px 8px; border-radius: 10px; background: #f8ae56; color: #000000; font-size: 12px; font-weight: bold;}
-.race-desc{display: block;}
-@media (hover: hover){.race-card:hover{background-color: rgba(255, 255, 255, 0.08);}}
-@media (max-width: 640px){.race-list{grid-template-columns: minmax(0, 1fr);}}
-</style>
+echo '
           <fieldset class="race-select">
             <legend>'.$createaccount_lang['rassewaehlen'].'</legend>
             <div class="race-list">';
@@ -233,17 +211,13 @@ foreach(array(1=>'E', 2=>'I', 3=>'K', 4=>'Z') as $bildnr=>$wert){
 }
 echo '
             </div>
-          </fieldset>
-        </td>
-      </tr>';
+          </fieldset>';
 }
-echo '<tr>
-        <td colspan="2" align="center"><input type="Submit" name="button" value="'.$createaccount_lang['datenbestaetigen'].'"></td>
-      </tr>
-      ';
+echo '<div class="formular-aktionen">
+        <input class="knopf knopf-primaer" type="Submit" name="button" value="'.$createaccount_lang['datenbestaetigen'].'">
+      </div>';
 
-echo '</table>';
-echo '</form><br><br>';
+echo '</form>';
 }
 
 ?>

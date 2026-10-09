@@ -2,8 +2,6 @@
 include 'content/de/lang/'.$ums_language.'_account.lang.php';
 $errmsg = '';
 
-echo '<div style="width: 100%;">';
-
 $db_daten = mysqli_execute_query(
     $GLOBALS['dbi'],
     "SELECT * FROM ls_user WHERE user_id = ?",
@@ -47,14 +45,14 @@ if (isset($_POST['delpass']) || isset($_POST['delcheck1']) || isset($_POST['delc
 				</script>';
 				exit;
             } else {
-                $errmsg .= '<font color="FF0000">'.$account_lang['msg_1'].'</font>';
+                $errmsg .= '<div class="hinweis hinweis-fehler">'.$account_lang['msg_1'].'</div>';
             }
 
         } else {
-            $errmsg .= '<font color="FF0000">'.$account_lang['msg_2'].'</font>';
+            $errmsg .= '<div class="hinweis hinweis-fehler">'.$account_lang['msg_2'].'</div>';
         }
     } else {
-        $errmsg .= '<font color="FF0000">'.$account_lang['msg_3'].'</font>';
+        $errmsg .= '<div class="hinweis hinweis-fehler">'.$account_lang['msg_3'].'</div>';
     }
 }
 
@@ -81,104 +79,71 @@ if (isset($_POST['oldpass']) || isset($_POST['newpass']) || isset($_POST['pass1'
                     "UPDATE ls_user SET pass = ?, newpass='' WHERE user_id = ?",
                     [$pass1_crypt, $_SESSION['ums_user_id']]
                 );
-                $errmsg .= '<font color="00FF00">'.$account_lang['msg_7'].'</font>';
+                $errmsg .= '<div class="hinweis hinweis-erfolg">'.$account_lang['msg_7'].'</div>';
             } else {
-                $errmsg .= '<font color="FF0000">'.$account_lang['msg_4'].': '.$minpwchars.').</font>';
+                $errmsg .= '<div class="hinweis hinweis-fehler">'.$account_lang['msg_4'].': '.$minpwchars.').</div>';
             }
         } else {
-            $errmsg .= '<font color="FF0000">'.$account_lang['msg_5'].'</font>';
+            $errmsg .= '<div class="hinweis hinweis-fehler">'.$account_lang['msg_5'].'</div>';
         }
     } else {
-        $errmsg .= '<font color="FF0000">'.$account_lang['msg_6'].'</font>';
+        $errmsg .= '<div class="hinweis hinweis-fehler">'.$account_lang['msg_6'].'</div>';
     }
 }
 
 echo $errmsg;
 
-echo '<form action="index.php?command=account" method="POST">';
-echo '<table border="0" cellpadding="3" cellspacing="0">
-      <tr>
-        <td colspan="2" align="center"><b>'.$account_lang['accountdaten'].'</b></td>
-      </tr>
-      <tr>
-        <td width="50%">'.$account_lang['spielername'].':</td>
-        <td width="50%">'.$row["spielername"].'</td>
-      </tr>
-      <tr>
-        <td>'.$account_lang['accountid'].':</td>
-        <td>ID'.$_SESSION['ums_user_id'].'</td>
-      </tr>
-      <tr>
-        <td>E-Mail:</td>
-        <td>'.$row['reg_mail'].'</td>
-      </tr>';
+//Accountdaten
+echo '<h1>'.$account_lang['accountdaten'].'</h1>';
+echo '<dl class="daten">
+	<dt>'.$account_lang['spielername'].'</dt>
+	<dd>'.$row["spielername"].'</dd>
+	<dt>'.$account_lang['accountid'].'</dt>
+	<dd>ID'.$_SESSION['ums_user_id'].'</dd>
+	<dt>E-Mail</dt>
+	<dd>'.$row['reg_mail'].'</dd>
+</dl>';
 
-echo '</table><br>';
-
-echo '</table>';
-
+//Passwort ändern
+echo '<h2>'.$account_lang['passwortaendern'].'</h2>';
+echo '<form class="formular" action="index.php?command=account" method="POST">';
+echo '<div class="feld">
+	<label for="oldpass">'.$account_lang['altespasswort'].'</label>
+	<input type="password" name="oldpass" id="oldpass" value="" autocomplete="current-password">
+</div>
+<div class="feld">
+	<label for="pass1">'.$account_lang['neuespasswort'].'</label>
+	<input type="password" name="pass1" id="pass1" value="" autocomplete="new-password">
+</div>
+<div class="feld">
+	<label for="pass2">'.$account_lang['neuespasswortwiederholen'].'</label>
+	<input type="password" name="pass2" id="pass2" value="" autocomplete="new-password">
+</div>
+<div class="formular-aktionen">
+	<input class="knopf knopf-primaer" type="Submit" name="newpass" value="'.$account_lang['passwortaendern'].'">
+</div>';
 echo '</form>';
 
-
-echo '<form action="index.php?command=account" method="POST">';
-
-echo '<table border="0" cellpadding="3" cellspacing="0">';
-echo '<tr>
-        <td colspan="2">&nbsp;</td>
-      </tr>
-
-      <tr>
-        <td colspan="2" align="center"><b>'.$account_lang['passwortaendern'].'</b></td>
-      </tr>
-      <tr>
-        <td width="300">'.$account_lang['altespasswort'].':</td>
-        <td width="350"><input type="password" name="oldpass" value=""></td>
-      </tr>
-      <tr>
-        <td>'.$account_lang['neuespasswort'].':</td>
-        <td><input type="password" name="pass1" value=""></td>
-      </tr>
-      <tr>
-        <td>'.$account_lang['neuespasswortwiederholen'].':</td>
-        <td><input type="password" name="pass2" value=""></td>
-      </tr>
-      <tr>
-        <td colspan="2" align="center"><input type="Submit" name="newpass" value="'.$account_lang['passwortaendern'].'"></td>
-      </tr>
-      ';
-
-echo '</table>';
-
+//Account löschen
+echo '<h2>'.$account_lang['accountloeschen'].'</h2>';
+echo '<p>'.$account_lang['msg_8'].'</p>';
+echo '<form class="formular" action="index.php?command=account" method="POST">';
+echo '<div class="feld">
+	<label for="delpass">'.$account_lang['passwort'].'</label>
+	<input type="password" name="delpass" id="delpass" value="" autocomplete="current-password">
+</div>
+<div class="feld-check">
+	<input name="delcheck1" id="delcheck1" type="checkbox" value="1">
+	<label for="delcheck1">'.$account_lang['bestaetigung'].' 1</label>
+</div>
+<div class="feld-check">
+	<input name="delcheck2" id="delcheck2" type="checkbox" value="1">
+	<label for="delcheck2">'.$account_lang['bestaetigung'].' 2</label>
+</div>
+<div class="formular-aktionen">
+	<input class="knopf knopf-gefahr" type="Submit" name="delbutton" value="'.$account_lang['accountloeschen'].'">
+</div>';
 echo '</form>';
-echo '<form action="index.php?command=account" method="POST">';
-
-echo '<table border="0" cellpadding="3" cellspacing="0">';
-echo '<tr>
-        <td colspan="2">&nbsp;</td>
-      </tr>
-
-      <tr>
-        <td colspan="2" align="center"><b>'.$account_lang['accountloeschen'].'</b></td>
-      </tr>
-      <tr>
-        <td colspan="2" align="center">'.$account_lang['msg_8'].'</td>
-      </tr>
-
-      <tr>
-        <td width="50%">'.$account_lang['passwort'].':</td>
-        <td width="50%"><input type="password" name="delpass" value=""></td>
-      </tr>
-      <tr>
-        <td><input name="delcheck1" type="checkbox" value="1">'.$account_lang['bestaetigung'].' 1</td>
-        <td><input name="delcheck2" type="checkbox" value="1">'.$account_lang['bestaetigung'].' 2</td>
-      </tr>
-      <tr>
-        <td colspan="2" align="center"><input type="Submit" name="delbutton" value="'.$account_lang['accountloeschen'].'"></td>
-      </tr>
-      ';
-
-echo '</table>';
-echo '</form></div>';
 
 function rahmen_oben($text)
 {
@@ -197,16 +162,3 @@ function rahmen_unten()
         </table><br>';
 }
 ?>
-
-<script>
-$('div, img, a').tooltip({ 
-    track: true, 
-    delay: 0, 
-    showURL: false, 
-    showBody: "&",
-    extraClass: "design1", 
-    fixPNG: true,
-    opacity: 0.15,
-    left: 0
-});
-</script>

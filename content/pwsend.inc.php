@@ -19,8 +19,8 @@ if( (isset($_POST["email"]) && $_POST["email"]) ){ //schauen ob was eingegeben w
 		$pwstring='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 		$newpass=$pwstring[rand(0, strlen($pwstring)-1)];
 		for($i=1; $i<=6; $i++) $newpass.=$pwstring[rand(0, strlen($pwstring)-1)];
-		
-		$newpass_crypt=password_hash($newpass, PASSWORD_DEFAULT);		
+
+		$newpass_crypt=password_hash($newpass, PASSWORD_DEFAULT);
 
 		//passwort in db eintragen
 		$uid=$row["user_id"];
@@ -63,39 +63,29 @@ if( (isset($_POST["email"]) && $_POST["email"]) ){ //schauen ob was eingegeben w
 
 		//send the message, check for errors
 		if (!$mail->send()) {
-			echo "Mailer Error: " . $mail->ErrorInfo;
+			echo '<div class="hinweis hinweis-fehler">Mailer Error: ' . $mail->ErrorInfo . '</div>';
 		} else {
 			//echo "Message sent!";
-			echo '<br><font size="2" color="#00FF00">'.$pwsend_lang['msg_2'].'<br><br><a href="index.php">'.$pwsend_lang['zumlogin'].'</a>';
+			echo '<div class="hinweis hinweis-erfolg">'.$pwsend_lang['msg_2'].'</div><p><a class="knopf" href="index.php">'.$pwsend_lang['zumlogin'].'</a></p>';
 		}
 		//////////////////////////////////////////////////////
 		//////////////////////////////////////////////////////
 		$emailhassend=1;
 	}
-	else echo '<br><font size="2" color="#FF0000">'.$pwsend_lang['msg_3'].'</font>';
+	else echo '<div class="hinweis hinweis-fehler">'.$pwsend_lang['msg_3'].'</div>';
 }
 if($emailhassend < 1)
 {
 ?>
-<form action="index.php?command=pwsend" method="POST">
-<div style="width: 100%; max-width: 650px; margin-left: auto; margin-right: auto;">
-<table width="100%" border="0" cellpadding="3" cellspacing="0">
-<tr align="center">
-<td colspan="2"><b><?=$pwsend_lang['passwortanfordern']?></b></td>
-</tr>
-<tr align="center">
-<td colspan="2"><?=$pwsend_lang['msg_4']?></td>
-</tr>
-
-<tr align="center">
-<td><?=$pwsend_lang['emailadresse']?></td>
-<td><input type="text" name="email" value=""></td>
-</tr>
-
-<tr align="center">
-<td colspan="2"><input type="submit" name="send_pass" value="<?=$pwsend_lang['passwortanfordern']?>"></td>
-</tr>
-</table>
+<h1><?=$pwsend_lang['passwortanfordern']?></h1>
+<p><?=$pwsend_lang['msg_4']?></p>
+<form class="formular" action="index.php?command=pwsend" method="POST">
+<div class="feld">
+	<label for="email"><?=$pwsend_lang['emailadresse']?></label>
+	<input type="text" name="email" id="email" value="" autocomplete="email">
+</div>
+<div class="formular-aktionen">
+	<input class="knopf knopf-primaer" type="submit" name="send_pass" value="<?=$pwsend_lang['passwortanfordern']?>">
 </div>
 </form>
 <?php

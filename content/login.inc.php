@@ -1,8 +1,6 @@
 <?php
 include 'content/de/lang/'.$ums_language.'_login.lang.php';
 
-echo '<div style="width: 100%; max-width: 650px; margin: auto;">';
-
 //logindaten überprüfen
 if( (isset($_REQUEST["loginname"]) && $_REQUEST["loginname"]!='') || (isset($_REQUEST["pass"]) && $_REQUEST["pass"]!='')){
 
@@ -46,14 +44,14 @@ document.cookie = "cpass='.md5($row['pass']).'; expires=" + expires.toUTCString(
 
 	//wenn ein datensatz gefunden wurde, dann einloggen
 	if($passwordOK){
-		
+
 		$ums_status=$row["acc_status"];
 		if($ums_status==1){ //alles richtig eingegen, spieler einloggen
 			//Spielerdaten auswerten
 			$_SESSION['ums_user_id']=$row["user_id"];
 			$_SESSION['ums_spielername']=$row["spielername"];
 			$_SESSION['ums_logins']=$row["logins"];
-			
+
 			//logins hochzählen und ip-adresse speichern
 			$ip=getenv("REMOTE_ADDR");
 			$parts=explode(".",$ip);
@@ -78,7 +76,7 @@ document.cookie = "cpass='.md5($row['pass']).'; expires=" + expires.toUTCString(
 					[$_SESSION['ums_user_id']]
 				);
 			}
-			
+
 			echo '
 			<script>
 			window.location.href = "index.php";
@@ -86,50 +84,30 @@ document.cookie = "cpass='.md5($row['pass']).'; expires=" + expires.toUTCString(
 			exit;
 
 		}
-		elseif($ums_status==2) echo $login_lang['msg_1'];
+		elseif($ums_status==2) echo '<div class="hinweis hinweis-fehler">'.$login_lang['msg_1'].'</div>';
 	}
-	else echo '<font color="#FF0000">'.$login_lang['msg_2'].'</font>';
+	else echo '<div class="hinweis hinweis-fehler">'.$login_lang['msg_2'].'</div>';
 }
 
-$height='30';
+echo '<h1>Login per E-Mail</h1>';
 
-echo '
-<div class="box-right">
-	<h2>Login per E-Mail</h2>
-';
-echo '<form action="index.php?command=login" method="post">';
-echo '<table border="0" cellpadding="0" cellspacing="0" style="margin-left: auto; margin-right: auto;">';
-/*
-<tr align="center">
-<td height="'.$height.'" colSpan="2" align="center"><b>'.$login_lang['login'].'</b></td>
-</tr>
-*/
+echo '<form class="formular" action="index.php?command=login" method="post">';
 
 $cuser=isset($_COOKIE["cuser"]) ? $_COOKIE["cuser"] : '';
-$cpass=isset($_COOKIE["cpass"]) ? $_COOKIE["cpass"] : ''; 
+$cpass=isset($_COOKIE["cpass"]) ? $_COOKIE["cpass"] : '';
 
 echo '
-<tr align="center">
-<td height="'.$height.'" width="180">E-Mail</td>
-<td height="'.$height.'" width="180"><input type="text" name="loginname" value="'.$cuser.'" tabindex="1"></td>
-</tr>
-
-<tr align="center">
-<td height="'.$height.'">'.$login_lang['passwort'].'</td>
-<td height="'.$height.'"><input type="password" name="pass" value="'.$cpass.'" tabindex="2"></td>
-</tr>
-<tr align="center">
-<td height="'.$height.'" colSpan="2"><br><input class="btn1" style="text-transform: uppercase;" type="Submit" name="login" value="'.$login_lang['login'].'"></td>
-</tr>';
-
-//Passwort vergessen
-echo '
-<tr align="center">
-<td colspan="2"><br><a href="index.php?command=pwsend">'.$login_lang['pwvergessen'].'</a></td>
-</tr>
-</table>
-			</div>
-		</div>
-	</form>
-</div>';
+<div class="feld">
+	<label for="loginname">E-Mail</label>
+	<input type="text" name="loginname" id="loginname" value="'.$cuser.'" tabindex="1" autocomplete="username">
+</div>
+<div class="feld">
+	<label for="pass">'.$login_lang['passwort'].'</label>
+	<input type="password" name="pass" id="pass" value="'.$cpass.'" tabindex="2" autocomplete="current-password">
+</div>
+<div class="formular-aktionen">
+	<input class="knopf knopf-primaer knopf-versal" type="Submit" name="login" value="'.$login_lang['login'].'">
+	<a href="index.php?command=pwsend">'.$login_lang['pwvergessen'].'</a>
+</div>
+</form>';
 ?>

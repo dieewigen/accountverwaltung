@@ -8,19 +8,19 @@ $allowed_server=array('xDE', 'SDE');
 
 $show_server=isset($_REQUEST['show_server']) ? $_REQUEST['show_server'] : '';
 
-echo '<br><div><div style="font-weight: bold;">Server: ';
+echo '<ul class="reiter"><li class="reiter-titel">Server:</li>';
 $server_found=false;
 for($i=0;$i<count($allowed_server);$i++){
 	if($show_server==$allowed_server[$i]){
-		$style=' style="font-weight: bold;"';
+		$aktiv=' aria-current="page"';
 		$server_found=true;
 	}else{
-		$style=' style="font-weight: normal;"';
+		$aktiv='';
 	}
-	echo '<a'.$style.' href="index.php?command=de_kb&show_server='.$allowed_server[$i].'">'.$allowed_server[$i].'</a>&nbsp;';
+	echo '<li><a'.$aktiv.' href="index.php?command=de_kb&show_server='.$allowed_server[$i].'">'.$allowed_server[$i].'</a></li>';
 }
 
-echo '</div>';
+echo '</ul>';
 
 if($server_found==true){
 
@@ -29,39 +29,21 @@ if($server_found==true){
 	$result = mysqli_execute_query($GLOBALS['dbi'], "SELECT * FROM ls_de_kb WHERE server = ? AND time LIKE ? ORDER BY atter ASC", [$show_server, $datum.'%']);
 
 
-	echo '
-	<style>
-	.k1 {font-size:8pt;font-family:Tahoma;color:#3399FF;border-color:#606060;background-color:#000000;}
-	.k2 {font-size:8pt;font-family:Tahoma;color:#3399FF;border-color:#606060;background:url(g/cellblack.png) repeat;}
-	.k3 {font-size:8pt;font-family:Tahoma;color:#000000;border-color:#606060;background-color:#969696;}
-	.k4 {font-size:8pt;font-family:Tahoma;color:#000000;border-color:#606060;background-color:#BABABA;}
-	.k5 {font-size:8pt;font-family:Tahoma;color:#FFB0B0;border-color:#606060;background-color:#640404;}
-	.k6 {font-size:8pt;font-family:Tahoma;color:#FFB0B0;border-color:#606060;background-color:#920606;}
-	.k7 {font-size:8pt;font-family:Tahoma;color:#ED951E;border-color:#606060;background-color:#304802;}
-	.k8 {font-size:8pt;font-family:Tahoma;color:#ED951E;border-color:#606060;background-color:#3A5C02;}
-	.k9 {font-size:8pt;font-family:Tahoma;color:#FFFF40;border-color:#606060;background-color:#710272;}
-	.k10 {font-size:8pt;font-family:Tahoma;color:#FFFF40;border-color:#606060;background-color:#7A048C;}
-	</style>
 
-		';
-
-	echo '<br><div style="font-weight: bold;">'.$show_server.'-Kampfberichte von gestern:</div><br><br>';
+	echo '<div class="seitentitel">'.$show_server.'-Kampfberichte von gestern:</div>';
 
 	//echo '<div style="width: 100%; background-color: #FF0000;text-align: center;">';
 
 	while($row = mysqli_fetch_array($result)){
 		if($row['kbversion']==0){
-			echo showkampfberichtV0($row['kb'],$row['atter'],$row['deffer']);
-			echo '<br><hr style="width: 100%;"><br>';
+			echo '<div class="kb-bericht">'.showkampfberichtV0($row['kb'],$row['atter'],$row['deffer']).'</div>';
 		}elseif($row['kbversion']==1){
-			echo showkampfberichtV1($row['kb'],$row['atter'],$row['deffer']);
-			echo '<br><hr style="width: 100%;"><br>';
-			
+			echo '<div class="kb-bericht">'.showkampfberichtV1($row['kb'],$row['atter'],$row['deffer']).'</div>';
 		}
 	}
 }else{
 	
-	echo '<div style="padding: 20px; border: 1px solid #00FF00; text-align: center; margin-top: 20px; color: #00FF00; font-weight: bold;">W&auml;hle bitte einen Server aus um die Kampfberichte einsehen zu k&ouml;nnen.</div>';
+	echo '<div class="hinweis hinweis-mitte">W&auml;hle bitte einen Server aus um die Kampfberichte einsehen zu k&ouml;nnen.</div>';
 	
 }
 //echo '</div>';
@@ -192,7 +174,7 @@ $kbl_lang['verlorenepunkte']='Verlorene Punkte';
 
   //zuerst den header
   $kbstring='
-<table cellSpacing=0 cellPadding=2 width=555 border=1>
+<table class="kb-tabelle">
 <tr align="center">
 <td class="k1" width="15%"><b>'.$kbl_lang['angreifer'].':</b></td>
 <td class="k1" width="85%">'.$atter.'</td>
@@ -206,8 +188,7 @@ $kbl_lang['verlorenepunkte']='Verlorene Punkte';
 </td>
 </tr>
 </table>
-<br>
-<TABLE cellSpacing="0" cellPadding="2" width="555" border="1">
+<table class="kb-tabelle">
 <tr align="center">
 <td class="k1" width="14%">&nbsp;</td>
 <td class="k1" width="43%" colSpan=3><u>'.$kbl_lang['angreifer'].'</u></td>
@@ -371,7 +352,7 @@ $kbstring.=
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
 $kbstring.='
-<br><table cellSpacing=0 cellPadding=2 width=555 border=1>
+<table class="kb-tabelle">
 <tr align="center"><td colspan="4" class="k1"><b>'.$kbl_lang['statistik'].'</b></td></tr>
 <tr align="center">
 <td  class="k2"><b>'.$kbl_lang['typ'].'</b></td>
@@ -563,7 +544,7 @@ $kbl_lang['verlorenepunkte']='Verlorene Punkte';
 
   //zuerst den header
   $kbstring='
-<table cellSpacing=0 cellPadding=2 width=555 border=1>
+<table class="kb-tabelle">
 <tr align="center">
 <td class="k1" width="15%"><b>'.$kbl_lang['angreifer'].':</b></td>
 <td class="k1" width="85%">'.$atter.'</td>
@@ -577,8 +558,7 @@ $kbl_lang['verlorenepunkte']='Verlorene Punkte';
 </td>
 </tr>
 </table>
-<br>
-<TABLE cellSpacing="0" cellPadding="2" width="555" border="1">
+<table class="kb-tabelle">
 <tr align="center">
 <td class="k1" width="14%">&nbsp;</td>
 <td class="k1" width="43%" colSpan=3><u>'.$kbl_lang['angreifer'].'</u></td>
@@ -707,7 +687,7 @@ $kbstring.=
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
 $kbstring.='
-<br><table cellSpacing=0 cellPadding=2 width=555 border=1>
+<table class="kb-tabelle">
 <tr align="center"><td colspan="4" class="k1"><b>'.$kbl_lang['statistik'].'</b></td></tr>
 <tr align="center">
 <td  class="k2"><b>'.$kbl_lang['typ'].'</b></td>

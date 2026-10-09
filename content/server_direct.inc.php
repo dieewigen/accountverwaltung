@@ -5,33 +5,38 @@ if($_SESSION['ums_user_id']!=1){
 	//die('Wartungsarbeiten. Die Ticks stehen.');
 }
 
-//alle Server darstellen
-for ($i=0;$i<=$sindex;$i++){
-  if($serverdata[$i][2]!='')
-  $sstr=$server_lang['wtick'].': '.$serverdata[$i][2].'<br>'.
-        $server_lang['ktick'].': '.$serverdata[$i][3];
-  else $sstr='';
-  $stip[$i] = '<b>'.$serverdata[$i][0].' - '.$serverdata[$i][1].'</b><br>'.$sstr.'"];';
-}
 
 $containerold=-1;
+$gruppe_offen=false;
 
-//serverliste ausgeben
-//echo '<table width="97%" border="0" cellpadding="0" cellspacing="0">';
-echo '<div style="width: 100%; position: relative; color: #000000;">';
-//$stipids='';
+//den Spielnamen nur als Überschrift zeigen, wenn mehr als ein Spiel in der Liste steht
+//(Partnerprojekte gibt es nicht mehr, es bleibt DIE EWIGEN)
+$container_vorhanden=array();
+for ($i=0;$i<=$sindex;$i++){
+	$container_vorhanden[$serverdata[$i]['container']]=1;
+}
+$gruppentitel=count($container_vorhanden)>1;
+
+//serverliste ausgeben: je Spiel eine Gruppe mit Karten, die Containerfarbe ist der Akzent
 for ($i=0;$i<=$sindex;$i++){
 	//schauen ob sich der spieltyp ändert
 	$hinweis='';
     if($containerold!=$serverdata[$i]['container']){
+		//vorherige Gruppe schließen
+		if($gruppe_offen){
+			echo '</div></section>';
+		}
 		//spielnamen ausgeben
-		echo '<div style="margin-bottom: 15px; margin-top: 20px; width: 100%; float: left; font-size: 24px; color: '.$serverdata[$i]['containercolor'].'"><b>'.$gamename[$serverdata[$i]['container']].'</b></div>';
-		
+		echo '<section class="server-gruppe" style="--gruppe-farbe: '.$serverdata[$i]['containercolor'].';">';
+		if($gruppentitel){
+			echo '<h2>'.$gamename[$serverdata[$i]['container']].'</h2>';
+		}
+
 		//Hinweistext bzgl. Testserver
 		/*
 		if($gamename[$serverdata[$i]['container']]=='DIE EWIGEN'){
 			$hinweis='
-			<div style="padding: 5px; border: 1px solid #39F; margin-bottom: 5px; color: #FF0000; float: left; width: 98.5%;">
+			<div class="hinweis hinweis-fehler">
 				ACHTUNG: DDE ist TESTSERVER. <span id="hidden_show1" style="cursor: pointer; color: #3399FF;" onclick="showHiddenInfo(1);">mehr...</span>
 				<span id="hidden_info1" style="display: none;">
 				DDE hat SDE tempor&auml;r als Testserver abgel&ouml;st. Dort wird eine neue DE-Version entwickelt. Wer auf die Entwicklung Einfluss haben m&ouml;chte, dem wird empfohlen sich dort zu beteiligen. Es ist nat&uuml;rlich keine Pflicht dort mitzuwirken, aber wer darauf verzichtet, sollte damit rechnen, dass seine Meinung nicht beachtet wird und sp&auml;tere Beschwerden u.U. auch nichts mehr bringen.
@@ -40,34 +45,21 @@ for ($i=0;$i<=$sindex;$i++){
 		}
 		*/
 
-	}
-    
-	echo $hinweis;
-	
-	echo '<div class="game_box"><div class="game_box_'.($serverdata[$i]['containerbg']).'" style="background: top center url(img/game_box_'.($serverdata[$i]['containerbg']+1).'.png);">';
+		echo $hinweis;
 
-    //ausgabe des servernamens    
-    echo '<span class="game_short" id="stip'.$i.'" title="'.$stip[$i].'" rel="tooltip"><b>'.$serverdata[$i][0].'</b></span>';
-    
-    //ausgabe der serverinformation
-	//echo '<span style="top: 4px; left: 28px; position: absolute;"><img id="stip'.$i.'" style="vertical-align: middle;" src="img/i1.gif" border="0" title="'.$stip[$i].'"></span>';
-	/*
-    if($stipids!='')$stipids.=',';
-	$stipids.="#stip$i";
-	*/
-   
-    //empfehlung für neue spieler
-    if($serverdata[$i][12]==1){
-		echo '<span style="left: 6px; top: 28px; position: absolute; width: 148px; font-size: 12px; text-align: center;">'.$server_lang['empfehlung'].'</span>';
+		echo '<div class="server-karten">';
+		$gruppe_offen=true;
 	}
-	
+
+	//Fehler beim Zugriff auf die Spieldatenbank, wird in der Karte angezeigt
+	$dbfehler='';
 	/////////////////////////////////////////////////////////////////////////
 	// Spielerdaten von den einzelnen Servern holen
 	/////////////////////////////////////////////////////////////////////////
 	$spielerinfos='';
 	//je nach Servertyp die Daten laden
 	//Login-Link pauschal erstmal auf neuen Account anlegen setzen
-	$login_link='<a href="index.php?command=createaccount&server='.$i.'"><span><b>Anmeldung</b></span></a>';
+	$login_link='<a class="knopf knopf-breit" href="index.php?command=createaccount&server='.$i.'">Anmeldung</a>';
 	$spielerstatus='';
 
 	//$serverdata[$sindex][8]=5;//gametyp: 1=de, 2=se, 3=alu, 4=abl, 5=and
@@ -145,7 +137,7 @@ for ($i=0;$i<=$sindex;$i++){
 							}
 
 							//Login-Link
-							$login_link='<a href="serverlogin.php?server='.$i.'" target="_blank"><b>Spielen</b></a>';
+							$login_link='<a class="knopf knopf-primaer knopf-breit" href="serverlogin.php?server='.$i.'" target="_blank">Spielen</a>';
 
 						}else{
 							$spielerinfos='Es wurde noch kein Account angelegt.';
@@ -155,7 +147,7 @@ for ($i=0;$i<=$sindex;$i++){
 
 				} catch (mysqli_sql_exception $e) {
 					// Benutzerfreundliche Fehlermeldung
-					echo '<br><br><br>DB-Access-Error';
+					$dbfehler='DB-Access-Error';
 				}				
 			}
 
@@ -296,29 +288,43 @@ for ($i=0;$i<=$sindex;$i++){
 
 
 
-	$status=$spielerstatus.' <img style="vertical-align: middle;" src="img/i1.gif" rel="tooltip" title="'.$spielerinfos.'">';
+	//Karte ausgeben: Servertag, Name, Empfehlung, Tickzeiten, Spielerstatus mit Accountdaten, Knopf
+	$karte='<article class="server-karte" style="--karte-akzent: '.$serverdata[$i]['containercolor'].';">';
+	$karte.='<div class="server-kopf"><span class="server-tag">'.$serverdata[$i][0].'</span><span class="server-name">'.$serverdata[$i][1].'</span></div>';
 
-	//spielerstatus/informationen
-    echo '<div style="top: 45px; left: 27px; position: absolute; width: 106px; text-align: center;">'.$status.'</div>';
+	//empfehlung für neue spieler
+	if($serverdata[$i][12]==1){
+		$karte.='<span class="server-empfehlung">'.$server_lang['empfehlung'].'</span>';
+	}
 
-    //login-link
-    echo '<div style="bottom: 2px; left: 5px; width: 148px; position: absolute; font-size: 22px; text-align: center;">'.$login_link.'</div>';
+	//tickzeiten
+	if($serverdata[$i][2]!=''){
+		$karte.='<dl class="server-ticks"><dt>'.$server_lang['wtick'].'</dt><dd>'.$serverdata[$i][2].'</dd><dt>'.$server_lang['ktick'].'</dt><dd>'.$serverdata[$i][3].'</dd></dl>';
+	}
 
+	if($dbfehler!=''){
+		$karte.='<div class="hinweis hinweis-fehler">'.$dbfehler.'</div>';
+	}
 
-	
-	
-	echo '</div></div>';
-    
+	//spielerstatus/informationen, die Accountdaten als Tooltip am Infoknopf
+	$karte.='<div class="server-status">'.$server_lang['account'].': <span class="server-status-wert">'.($spielerstatus!='' ? $spielerstatus : '-').'</span>';
+	if($spielerinfos!=''){
+		$karte.=' <span class="tipp"><button type="button" class="tipp-knopf" aria-label="'.$server_lang['accountdaten'].'">i</button><span class="tipp-text" role="tooltip">'.$spielerinfos.'</span></span>';
+	}
+	$karte.='</div>';
+
+	//login-link
+	$karte.='<div class="server-aktion">'.$login_link.'</div>';
+
+	$karte.='</article>';
+	echo $karte;
+
     $containerold=$serverdata[$i]['container'];
 
 }
-echo '</div>
-
-<script>
-//setTooltip();
-</script>
-';
-//echo '</table>';
+if($gruppe_offen){
+	echo '</div></section>';
+}
 
 /*
 echo "

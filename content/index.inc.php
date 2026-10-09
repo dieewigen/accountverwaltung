@@ -49,13 +49,16 @@ if (!isset($_REQUEST["mobi"]) and (isset($_POST["loginname"]) or isset($_POST["p
 }
 */
 ?>
-<!DOCTYPE HTML>
-<html>
+<!DOCTYPE html>
+<html lang="de">
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <?php
 include "cssinclude.php";
 ?>
 <title><?php echo $index_lang['title']?></title>
+<meta name="theme-color" content="#05070c">
 
 <link rel="manifest" href="/manifest.json">
 <script type="text/javascript">
@@ -72,29 +75,41 @@ if ("serviceWorker" in navigator) {
 <link rel="apple-touch-icon" sizes="180x180" href="/img/icon-180x180.png" />
 <link rel="icon" sizes="192x192" href="/img/icon-192x192.png">
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
 <META Name="keywords" Content="<?php echo $index_lang['keywords']?>">
 <META Name="description" Content="<?php echo $index_lang['description']?>">
 <meta http-equiv="pragma" content="no-cache">
-<meta http-equiv="cache-control" content="max-age=86400"> 
-<script src="js/jquery-3.7.1.min.js"></script>
-<script src="js/ls.js"></script>
+<meta http-equiv="cache-control" content="max-age=86400">
 </head>
 <body>
+<a class="sprung" href="#inhalt">Zum Inhalt springen</a>
+<header class="kopf">
+<div class="kopf-innen">
+<a class="marke" href="index.php"><span class="marke-zeichen" aria-hidden="true">&infin;</span><span class="marke-spiel">Die Ewigen</span></a>
 <?php
-
+//Bereichsmarke und Spielerzahl in der Kopfleiste
 include "header.php";
 
 //menü einbinden
 include "m_main.php";
+?>
+</div>
+</header>
+<main class="rahmen" id="inhalt">
+<?php
+$ls_eingeloggt = isset($_SESSION["ums_user_id"]) && $_SESSION["ums_user_id"] > 0;
+$ls_command = isset($_REQUEST["command"]) ? $_REQUEST["command"] : '';
 
-echo '<div id="content_bg">';
-
-echo '<div id="content">';
+//die Serverliste steht als Karten frei im Rahmen, alle anderen Seiten in einem Panel
+if ($ls_eingeloggt && $ls_command == "server_direct") {
+    echo '<div class="serverliste">';
+    $ls_panel_ende = '</div>';
+} else {
+    echo '<article class="seite">';
+    $ls_panel_ende = '</article>';
+}
 
 //man ist eingeloggt:
-if (isset($_SESSION["ums_user_id"]) && $_SESSION["ums_user_id"] > 0) {
+if ($ls_eingeloggt) {
     //last_login updaten
     mysqli_execute_query(
         $GLOBALS['dbi'],
@@ -145,7 +160,7 @@ window.location.href = "index.php";
         echo '
         <script>
         window.location.href = "index.php?command=login";
-        </script>';        
+        </script>';
 
     } elseif (isset($_REQUEST["command"]) && $_REQUEST["command"] == "register") {
         include "content/register.inc.php";
@@ -162,8 +177,8 @@ window.location.href = "index.php";
     }
 }
 
-//div contentright end
-echo '</div>';
+//Panel bzw. Serverliste schließen
+echo $ls_panel_ende;
 
 //footer
 include "footer.php";
