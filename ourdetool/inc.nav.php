@@ -17,6 +17,9 @@ return [
         'multi2'         => ['multi.php?stat2=1', 'Multi-IP o. gesperrt'],
         'seitenaufrufe'  => ['seitenaufrufe.php', 'Seitenaufrufe'],
     ],
+    'Statistik' => [
+        'ansichten' => ['ansichten.php', 'Spielansichten'],
+    ],
     'Inhalte' => [
         'patchnotes' => ['patchnotes_editor.php', 'Patch Notes Editor'],
     ],
