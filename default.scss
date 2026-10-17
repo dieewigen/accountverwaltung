@@ -990,47 +990,320 @@ input[type="radio"] {
 }
 
 // ------------------------------------------------------------
-// Kampfberichte (DE-KB): Tabellen im Stil der Spielberichte
+// Kampfberichte (DE-KB), Aufbau und Werte aus dem Spiel (Block .kb in de2/gp/de-main.scss):
+// Kopf mit Ergebnis, Angreifer warm und Verteidiger kühl, Einheiten je Seite, Bilanz mit Anteilsbalken.
+// Die Rassenfarben der früheren Zellklassen k1 bis k10 sind die Zeilentönung .kb-r0 bis .kb-r4
+// (E blau, I grau, K rot, Z grün/orange, D violett/gelb).
 // ------------------------------------------------------------
 
 .kb-bericht {
     margin: 18px 0;
-    padding: 14px;
-    background: rgba(0, 0, 0, 0.35);
+    padding: 14px 16px 16px;
+    background: rgba(6, 9, 14, 0.9);
     border: 1px solid var(--linie);
     border-radius: 12px;
     overflow-x: auto;
 }
 
-.kb-tabelle {
-    width: 100%;
-    min-width: 520px;
-    margin: 0 0 12px;
-    border-collapse: collapse;
+.kb {
+    --kb-farbe: 255, 255, 255;
+    --kb-text: #c9d1d9;
+    color: #c9d1d9;
+    font-size: 13px;
+    line-height: 1.4;
+    text-align: left;
 
-    td {
-        padding: 2px 4px;
-        border: 1px solid #606060;
-        font-family: Tahoma, var(--schrift);
-        font-size: 8pt;
-    }
-
-    b,
-    strong {
-        color: inherit;
+    p {
+        margin: 0;
     }
 }
 
-.k1 { color: #3399FF; background-color: #000000; }
-.k2 { color: #3399FF; background-color: #101010; }
-.k3 { color: #000000; background-color: #969696; }
-.k4 { color: #000000; background-color: #BABABA; }
-.k5 { color: #FFB0B0; background-color: #640404; }
-.k6 { color: #FFB0B0; background-color: #920606; }
-.k7 { color: #ED951E; background-color: #304802; }
-.k8 { color: #ED951E; background-color: #3A5C02; }
-.k9 { color: #FFFF40; background-color: #710272; }
-.k10 { color: #FFFF40; background-color: #7A048C; }
+.kb-r0 { --kb-farbe: 51, 153, 255; --kb-text: #8ec5ff; }
+.kb-r1 { --kb-farbe: 166, 166, 166; --kb-text: #e0e0e0; }
+.kb-r2 { --kb-farbe: 146, 6, 6; --kb-text: #ffb0b0; }
+.kb-r3 { --kb-farbe: 58, 92, 2; --kb-text: #ed951e; }
+.kb-r4 { --kb-farbe: 122, 4, 140; --kb-text: #ffff40; }
+
+// kleine Typzeile und Chips wie im Spiel
+.mod-typ {
+    color: #8b949e;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.mod-chip {
+    display: inline-block;
+    padding: 1px 7px;
+    color: #9da7b1;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 999px;
+    font-size: 10px;
+
+    b {
+        color: #ffffff;
+        font-weight: 700;
+    }
+}
+
+.mod-chip-gruen {
+    color: #5fe08a;
+    background: rgba(62, 207, 106, 0.14);
+}
+
+.kb-kopf {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+
+    .mod-typ {
+        display: block;
+    }
+}
+
+.kb-ort {
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.kb-ergebnis {
+    flex: 0 0 auto;
+    padding: 4px 12px;
+    color: #e6edf3;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+// ohne eigene Seite: Kollektoren erobert in der Farbe des Angreifers, abgewehrt in der des Verteidigers
+.kb-ergebnis-a {
+    color: #ffb08f;
+    background: rgba(255, 138, 92, 0.15);
+    border-color: rgba(255, 138, 92, 0.6);
+}
+
+.kb-ergebnis-v {
+    color: #9dcdff;
+    background: rgba(95, 176, 255, 0.15);
+    border-color: rgba(95, 176, 255, 0.6);
+}
+
+// Angreifer warm, Verteidiger kühl: Karten und Anteilsbalken
+.kb-seiten {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.kb-seite {
+    padding: 6px 10px 8px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-top-width: 2px;
+    border-radius: 8px;
+}
+
+.kb-seite-a { border-top-color: #ff8a5c; }
+.kb-seite-v { border-top-color: #5fb0ff; }
+
+.kb-seite-kopf {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    min-height: 18px;
+}
+
+.kb-namen {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 4px;
+}
+
+.kb-name {
+    display: inline-block;
+    padding: 1px 8px;
+    color: var(--kb-text);
+    background: rgba(var(--kb-farbe), 0.18);
+    border-radius: 999px;
+    font-size: 11px;
+    overflow-wrap: anywhere;
+}
+
+.kb-text {
+    margin-bottom: 8px;
+}
+
+// Bilanz und Einheitentabellen
+.kb-bilanz,
+.kb-einheiten {
+    width: 100%;
+    border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
+
+    th,
+    td {
+        padding: 3px 5px;
+        background: none;
+        border: 0;
+        font-size: 12px;
+        text-align: right;
+        white-space: nowrap;
+    }
+
+    th {
+        color: #8b949e;
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+
+    th:first-child,
+    td:first-child {
+        text-align: left;
+        white-space: normal;
+    }
+
+    small {
+        color: #8b949e;
+        font-size: 10px;
+    }
+}
+
+.kb-bilanz {
+    margin-bottom: 8px;
+
+    td:nth-child(3) {
+        width: 90px;
+    }
+
+    .kb-verh {
+        color: #8b949e;
+    }
+}
+
+.kb-anteil {
+    display: flex;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 3px;
+    overflow: hidden;
+
+    span {
+        display: block;
+        height: 100%;
+    }
+}
+
+.kb-anteil-a { background: #ff8a5c; }
+.kb-anteil-v { background: #5fb0ff; }
+
+// Einheiten: Angreifer und Verteidiger nebeneinander, Zeilen in der Rassenfarbe, Gruppen durch feine Linien getrennt
+.kb-einheiten {
+    margin-top: 10px;
+
+    th,
+    td {
+        padding: 2px 3px;
+        font-size: 11px;
+    }
+
+    .kb-gruppen th {
+        padding-top: 4px;
+        color: #c9d1d9;
+        font-size: 10px;
+        font-weight: 700;
+        text-align: center;
+    }
+
+    .kb-ga { color: #ff8a5c; }
+    .kb-gv { color: #5fb0ff; }
+
+    .kb-unter th {
+        font-size: 9px;
+        font-weight: 400;
+        letter-spacing: 0;
+        text-transform: none;
+    }
+
+    // Gruppen trennen: Kopfzeile mit colspan, darunter die erste Spalte jeder Gruppe
+    .kb-gruppen th + th,
+    th:nth-child(2),
+    td:nth-child(2),
+    .kb-unter th:nth-child(5),
+    td:nth-child(5) {
+        border-left: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    tr[class*="kb-r"] td {
+        color: var(--kb-text);
+        background: rgba(var(--kb-farbe), 0.22);
+    }
+
+    tr[class*="kb-r"]:nth-child(even) td {
+        background: rgba(var(--kb-farbe), 0.34);
+    }
+
+    .kb-leer {
+        color: rgba(255, 255, 255, 0.25);
+        text-align: center;
+    }
+
+    .kb-trenner td {
+        padding-top: 8px;
+        color: #8b949e;
+        font-size: 10px;
+        letter-spacing: 0.06em;
+        text-align: left;
+        text-transform: uppercase;
+    }
+}
+
+// Statistik am Ende
+.kb-statistik {
+    margin-top: 12px;
+
+    > .mod-typ {
+        display: block;
+        margin-bottom: 4px;
+    }
+
+    .kb-bilanz {
+        margin-bottom: 6px;
+    }
+}
+
+.kb-keine {
+    padding: 6px 0;
+    color: #8b949e;
+    font-size: 11px;
+}
+
+.kb-regel {
+    margin-top: 8px;
+    color: #9da7b1;
+    font-size: 11px;
+
+    > summary {
+        color: #c9d1d9;
+        cursor: pointer;
+    }
+
+    p {
+        margin-top: 4px;
+        line-height: 1.5;
+    }
+}
 
 // ------------------------------------------------------------
 // Fuß
@@ -1125,6 +1398,15 @@ input[type="radio"] {
         dd {
             margin-bottom: 8px;
         }
+    }
+
+    // Kampfbericht: Kopf darf umbrechen, Angreifer und Verteidiger untereinander
+    .kb-kopf {
+        flex-wrap: wrap;
+    }
+
+    .kb-seiten {
+        grid-template-columns: minmax(0, 1fr);
     }
 }
 
