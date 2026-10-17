@@ -18,7 +18,8 @@ return [
         'seitenaufrufe'  => ['seitenaufrufe.php', 'Seitenaufrufe'],
     ],
     'Statistik' => [
-        'ansichten' => ['ansichten.php', 'Spielansichten'],
+        'spielerzahl' => ['spielerzahl.php', 'Spielerzahl'],
+        'ansichten'   => ['ansichten.php', 'Spielansichten'],
     ],
     'Inhalte' => [
         'patchnotes' => ['patchnotes_editor.php', 'Patch Notes Editor'],
