@@ -19,6 +19,7 @@ return [
     ],
     'Statistik' => [
         'spielerzahl' => ['spielerzahl.php', 'Spielerzahl'],
+        'besucher'    => ['besucher.php', 'Besucher'],
         'ansichten'   => ['ansichten.php', 'Spielansichten'],
     ],
     'Inhalte' => [

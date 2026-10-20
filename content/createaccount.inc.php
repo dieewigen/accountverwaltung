@@ -133,6 +133,8 @@ if(isset($_POST['button']) AND $hasall==1){
 						//account ohne fehler angelegt
 						$errmsg.='<div class="hinweis hinweis-erfolg">'.$createaccount_lang['msg_3'].'</div>';
 						$createok=1;
+						//Besucherzählung: Spielkonto angelegt, mit Servertag
+						besuch_zaehlen('spielkonto', '', $_SESSION['von'] ?? '', $serverdata[$target][0]);
 					break;
 					case '2':
 						//spielername ist bereits vergeben

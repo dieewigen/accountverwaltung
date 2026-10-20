@@ -128,6 +128,9 @@ if (isset($_REQUEST['newreg'])) {
             )";
             mysqli_execute_query($GLOBALS['dbi'], $sql, [$email1, $email1, $newpass_crypt, $ip, $spielername]);
 
+            //Besucherzählung: abgeschlossene Registrierung, mit der Kampagnenkennung aus dem Link der Hauptdomain
+            besuch_zaehlen('registriert', '', $_SESSION['von'] ?? '');
+
             //registrierungs-email versenden
             $loginurl = 'https://login.die-ewigen.com/';
 
@@ -188,6 +191,11 @@ color: #FFFFFF;background-color: #000000;} a {color: #f8ae56;} </style>
 		</script>';
         exit;
     }
+}
+
+//Besucherzählung: Aufruf des Formulars, nicht die Antwort auf einen Fehlversuch
+if (!isset($_REQUEST['newreg'])) {
+    besuch_zaehlen('registrieren', besuch_quelle(), $_SESSION['von'] ?? '');
 }
 
 echo '<h1>Registrierung</h1>';

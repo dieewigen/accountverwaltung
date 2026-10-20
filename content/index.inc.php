@@ -15,6 +15,13 @@ if (!empty($_REQUEST['a'])) {
 }
 
 //////////////////////////////////////////////////////////////
+// Kampagnenkennung (?von=discord) der Hauptdomain für die Besucherzählung merken
+//////////////////////////////////////////////////////////////
+if (isset($_REQUEST['von'])) {
+    $_SESSION['von'] = besuch_kampagne((string)$_REQUEST['von']);
+}
+
+//////////////////////////////////////////////////////////////
 // Login per Cookie
 //////////////////////////////////////////////////////////////
 if ((!isset($_SESSION['ums_user_id']) || $_SESSION['ums_user_id'] < 1) && isset($_COOKIE['cpass']) && isset($_COOKIE["cuser"])) {

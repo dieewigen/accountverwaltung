@@ -122,6 +122,9 @@ if(intval(date("H"))==1){
 	//aktive user
 	$datum=date("Y-m-d".' 00:00:00', time()-3600*24*7);
 	mysqli_query($GLOBALS['dbi'], "DELETE FROM ls_user WHERE logins=0 AND register < '$datum';");
+
+	//Besucherzählung: Zeilen älter als zwei Jahre löschen (ls_besuch, siehe besuch_zaehlen() in functions.php)
+	mysqli_query($GLOBALS['dbi'], "DELETE FROM ls_besuch WHERE zeit < DATE_SUB(NOW(), INTERVAL 730 DAY);");
 }
 
 

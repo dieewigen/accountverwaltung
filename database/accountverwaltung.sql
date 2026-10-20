@@ -64,6 +64,23 @@ CREATE TABLE `de_newsletter` (
 -- --------------------------------------------------------
 
 --
+-- Tabellenstruktur für Tabelle `ls_besuch`
+--
+
+CREATE TABLE `ls_besuch` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `zeit` datetime NOT NULL,
+  `seite` varchar(20) NOT NULL,
+  `quelle` varchar(100) NOT NULL DEFAULT '',
+  `kampagne` varchar(30) NOT NULL DEFAULT '',
+  `detail` varchar(30) NOT NULL DEFAULT '',
+  `besucher` char(16) NOT NULL,
+  `bekannt` tinyint(1) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Tabellenstruktur für Tabelle `ls_de_kb`
 --
 
@@ -263,6 +280,14 @@ ALTER TABLE `de_newsletter`
   ADD PRIMARY KEY (`reg_mail`);
 
 --
+-- Indizes für die Tabelle `ls_besuch`
+--
+ALTER TABLE `ls_besuch`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `zeit` (`zeit`),
+  ADD KEY `seite` (`seite`,`zeit`);
+
+--
 -- Indizes für die Tabelle `ls_de_kb`
 --
 ALTER TABLE `ls_de_kb`
@@ -345,6 +370,12 @@ ALTER TABLE `de_chat_ignore`
 -- AUTO_INCREMENT für Tabelle `de_chat_msg`
 --
 ALTER TABLE `de_chat_msg`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT für Tabelle `ls_besuch`
+--
+ALTER TABLE `ls_besuch`
   MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --

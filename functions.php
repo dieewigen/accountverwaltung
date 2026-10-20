@@ -80,3 +80,38 @@ function utf8_decode_fix($string)
 {
     return mb_convert_encoding($string, 'ISO-8859-1', 'UTF-8');
 }
+
+/**
+ * Besucherzählung in ls_besuch, ohne Cookies und ohne gespeicherte IP-Adresse.
+ * Je Aufruf eine Zeile: Seite, Herkunft (Host der verweisenden Seite), Kampagne (?von=…), Detail und eine
+ * Besucherkennung aus Tag, IP und Browser, verschlüsselt mit dem RPC-Authcode. Sie wechselt täglich und lässt
+ * sich nicht zur IP zurückrechnen. Browser mit Login-Cookie (cuser) gelten als bekannte Spieler, Crawler und
+ * Linkvorschauen werden nicht gezählt. Die Hauptdomain meldet ihre Aufrufe über besuch.php,
+ * die Auswertung steht im Admintool unter ourdetool/besucher.php.
+ */
+function besuch_zaehlen(string $seite, string $quelle = '', string $kampagne = '', string $detail = ''): void
+{
+    $browser = $_SERVER['HTTP_USER_AGENT'] ?? '';
+    if ($browser === '' || preg_match('/bot|crawl|spider|slurp|fetch|preview|monitor|scan|curl|wget|python|java|php|go-http|headless|lighthouse|pingdom|uptime|facebookexternalhit|whatsapp/i', $browser)) {
+        return;
+    }
+    $kennung = substr(hash_hmac('sha256', date('Y-m-d') . '|' . ($_SERVER['REMOTE_ADDR'] ?? '') . '|' . $browser, (string)($GLOBALS['env_rpc_authcode'] ?? '')), 0, 16);
+    mysqli_execute_query(
+        $GLOBALS['dbi'],
+        "INSERT INTO ls_besuch (zeit, seite, quelle, kampagne, detail, besucher, bekannt) VALUES (NOW(), ?, ?, ?, ?, ?, ?)",
+        [substr($seite, 0, 20), substr($quelle, 0, 100), substr($kampagne, 0, 30), substr($detail, 0, 30), $kennung, isset($_COOKIE['cuser']) ? 1 : 0]
+    );
+}
+
+/** Host der verweisenden Seite für die Besucherzählung, leer ohne Referrer oder bei eigenen Domains. */
+function besuch_quelle(): string
+{
+    $host = strtolower((string)parse_url($_SERVER['HTTP_REFERER'] ?? '', PHP_URL_HOST));
+    return str_ends_with($host, 'die-ewigen.com') ? '' : $host;
+}
+
+/** Kampagnenkennung aus ?von=… (Kleinbuchstaben, Ziffern, - und _, bis 30 Zeichen), sonst leer. */
+function besuch_kampagne(string $wert): string
+{
+    return preg_match('/^[a-z0-9_-]{1,30}$/', $wert) ? $wert : '';
+}
