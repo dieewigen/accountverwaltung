@@ -48,15 +48,18 @@ $country = isset($_REQUEST['country']) ? $_REQUEST['country'] : '';
 if (isset($_REQUEST['newreg'])) {
 
     $leeresfeld = 0;
+    $fehlerart = []; //Gründe für die Besucherzählung (gesendet: ok, honeypot oder Fehlerliste)
     //schauen ob die daten korrekt eingegeben worden sind
     if ($spielername != '') {
         if (!preg_match("/^[[:alpha:]0-9äöü_=-]*$/i", $spielername)) {
             $fehlermsg .= $newreg_lang['fehlermsg1'];
+            $fehlerart[] = 'name';
         } else {
             $db_daten = mysqli_execute_query($GLOBALS['dbi'], "SELECT user_id FROM ls_user where spielername= ?", [$spielername]);
             $vorhanden = mysqli_num_rows($db_daten);
             if ($vorhanden > 0) {
                 $fehlermsg .= '<br>'.$newreg_lang['fehlermsg2'];
+                $fehlerart[] = 'namevergeben';
             }
         }
     } else {
@@ -66,6 +69,7 @@ if (isset($_REQUEST['newreg'])) {
     if ($email1 != '') {
         if (is_email($email1) == 0) {
             $fehlermsg .= '<br>'.$newreg_lang['fehlermsg6'];
+            $fehlerart[] = 'mail';
         } else {
             //hier noch schauen ob es sie schon gibt
 
@@ -73,6 +77,7 @@ if (isset($_REQUEST['newreg'])) {
             $vorhanden = mysqli_num_rows($db_daten);
             if ($vorhanden > 0) {
                 $fehlermsg .= '<br>'.$newreg_lang['fehlermsg7'];
+                $fehlerart[] = 'mailvergeben';
             }
         }
     } else {
@@ -81,10 +86,12 @@ if (isset($_REQUEST['newreg'])) {
 
     if ($agb != 1) {
         $fehlermsg .= '<br>'.$newreg_lang['fehlermsg19'];
+        $fehlerart[] = 'agb';
     }
 
     if ($leeresfeld == 1) {
         $fehlermsg .= '<br>'.$newreg_lang['fehlermsg20'];
+        $fehlerart[] = 'leer';
     }
 
     if ($fehlermsg == '') {
@@ -114,6 +121,9 @@ if (isset($_REQUEST['newreg'])) {
         //Passwort verschlüsseln
         $newpass_crypt = password_hash($newpass, PASSWORD_DEFAULT);
 
+
+        //Besucherzählung: Formular abgeschickt, durchgegangen oder vom Honeypot (Feld country) abgefangen
+        besuch_zaehlen('gesendet', '', $_SESSION['von'] ?? '', empty($country) ? 'ok' : 'honeypot');
 
         //daten in der db ablegen
         if(empty($country)){
@@ -191,6 +201,9 @@ color: #FFFFFF;background-color: #000000;} a {color: #f8ae56;} </style>
 		</script>';
         exit;
     }
+
+    //Besucherzählung: Formular abgeschickt und an der Prüfung gescheitert, mit den Gründen
+    besuch_zaehlen('gesendet', '', $_SESSION['von'] ?? '', implode(',', $fehlerart));
 }
 
 //Besucherzählung: Aufruf des Formulars, nicht die Antwort auf einen Fehlversuch

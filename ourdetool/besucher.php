@@ -105,6 +105,34 @@ if (!$tage) {
       <th class="num"><?= besucher_zahl($summe['spielkonten']) ?></th>
     </tr>
   </table>
+<?php
+// Abgeschickte Formulare mit Ergebnis: detail ist 'ok', 'honeypot' oder die Liste der Prüfgründe (register.inc.php)
+$gesendet = ['ok' => 0, 'honeypot' => 0, 'fehler' => 0];
+$gruende = [];
+$gruend_namen = ['name' => 'Spielername ung&uuml;ltig', 'namevergeben' => 'Spielername vergeben', 'mail' => 'E-Mail ung&uuml;ltig',
+    'mailvergeben' => 'E-Mail schon registriert', 'agb' => 'Regeln nicht best&auml;tigt', 'leer' => 'Feld leer'];
+$res = mysqli_execute_query($GLOBALS['dbi'], "SELECT detail, COUNT(*) AS anzahl FROM ls_besuch WHERE zeit >= ? AND seite = 'gesendet' GROUP BY detail", [$von]);
+while ($zeile = mysqli_fetch_assoc($res)) {
+    if (isset($gesendet[$zeile['detail']])) {
+        $gesendet[$zeile['detail']] += (int)$zeile['anzahl'];
+        continue;
+    }
+    $gesendet['fehler'] += (int)$zeile['anzahl'];
+    foreach (explode(',', $zeile['detail']) as $grund) {
+        $gruende[$grund] = ($gruende[$grund] ?? 0) + (int)$zeile['anzahl'];
+    }
+}
+arsort($gruende);
+$gruende_text = [];
+foreach ($gruende as $grund => $anzahl) {
+    $gruende_text[] = ($gruend_namen[$grund] ?? htmlspecialchars($grund)) . ' ' . besucher_zahl($anzahl);
+}
+?>
+  <p class="dim">
+    Formular abgeschickt: <?= besucher_zahl(array_sum($gesendet)) ?>, davon durchgegangen <?= besucher_zahl($gesendet['ok']) ?>,
+    an der Pr&uuml;fung gescheitert <?= besucher_zahl($gesendet['fehler']) ?><?= $gruende_text ? ' (' . implode(', ', $gruende_text) . ')' : '' ?>,
+    vom Honeypot abgefangen <?= besucher_zahl($gesendet['honeypot']) ?>. Gez&auml;hlt seit dem 28.10.2026, ein Fehlversuch kann mehrere Gr&uuml;nde haben.
+  </p>
 </div>
 
 <div class="cards" style="grid-template-columns:repeat(auto-fit,minmax(360px,1fr))">
